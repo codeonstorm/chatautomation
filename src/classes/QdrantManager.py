@@ -13,107 +13,123 @@ logging.basicConfig(
   level=logging.INFO,
   format='%(asctime)s - %(levelname)s - %(message)s',
   handlers=[
-    logging.FileHandler("./logs/qdrant_manager.log"),
+    # logging.FileHandler("../../logs/qdrant_manager.log"),
     logging.StreamHandler()
   ]
 )
 
 class QdrantManager:
-  def __init__(self, collection_name="demo_collection", vector_size=3072, distance_metric=Distance.COSINE, model_name="llama3.2"):
+  client = None  #static variable
+  
+  def __init__(self, model_name="llama3.2"):
     """Initialize the QdrantManager with collection configuration."""
     try:
       load_dotenv()
       self.qdrant_url = os.getenv("QDRANT_CLIENT_URL")
       self.qdrant_api_key = os.getenv("QDRANT_CLIENT_API_KEY")
       self.debug = os.getenv("DEBUG", False)
+      self.vector_store = {}  # Lazy initialization
       
       if not self.qdrant_url or not self.qdrant_api_key:
         raise ValueError("Missing Qdrant configuration in environment variables.")
       
-      self.collection_name = collection_name
       self.embeddings = OllamaEmbeddings(model=model_name)
-        
-      self.client = QdrantClient(url=self.qdrant_url)
-      self._initialize_collection(vector_size, distance_metric)
-      
-      self.vector_store = None  # Lazy initialization
+      if QdrantManager.client is None:
+        QdrantManager.client = QdrantClient(url=self.qdrant_url, api_key=self.qdrant_api_key)
+
     except Exception as e:
       logging.error(f"Error initializing QdrantManager: {e}")
       raise
 
-  def _initialize_collection(self, vector_size, distance_metric):
-    """Create a collection in Qdrant if it doesn't exist."""
+  def get_vector_store(self, collection_name="chatbot") -> QdrantVectorStore:
+    """Get the Qdrant vector store."""
     try:
-      self.client.create_collection(
-        collection_name=self.collection_name,
-        vectors_config=VectorParams(size=vector_size, distance=distance_metric),
-        )
+      self._initialize_vector_store(collection_name)
+      return self.vector_store[collection_name]
     except Exception as e:
-      logging.warning(f"Error initializing collection: {e}")
-
-  def _initialize_vector_store(self):
+      logging.error(f"Error getting vector store: {e}")
+      return
+    
+  def _initialize_vector_store(self, collection_name):
     """Lazy initialization of vector store."""
-    if self.vector_store is None:
-      self.vector_store = QdrantVectorStore(
-        client=self.client, collection_name=self.collection_name, embedding=self.embeddings
+    if collection_name not in self.vector_store:
+      self.vector_store[collection_name] = QdrantVectorStore.from_existing_collection(
+        # QdrantManager.client,
+        embedding=self.embeddings,
+        collection_name=collection_name,
+        prefer_grpc=True,
+        url=self.qdrant_url,
+        api_key=self.qdrant_api_key,
       )
 
-  def add_documents(self, documents):
-    """Add documents to the Qdrant vector store."""
+  def create_new_collection(self, collection_name, vector_size=3072, distance_metric=Distance.COSINE) -> bool:
+    """Create a new collection in Qdrant."""
     try:
-      self._initialize_vector_store()
-      uuids = [str(uuid4()) for _ in range(len(documents))]
-      self.vector_store.add_documents(documents=documents, ids=uuids)
-      if self.debug: logging.info("Documents added successfully.")
-      return uuids
-    except Exception as e:
-      logging.error(f"Error adding documents: {e}")
-      return []
+      existing_collections = QdrantManager.client.get_collections()
+      if collection_name in [col.name for col in existing_collections.collections]:
+        if self.debug:
+          logging.info(f"Collection {collection_name} already exists.")
+        return
 
-  def delete_documents(self, doc_ids):
-    """Delete documents from the Qdrant vector store."""
-    try:
-      self._initialize_vector_store()
-      self.vector_store.delete(ids=doc_ids)
-      if self.debug: logging.info("Documents deleted successfully.")
+      QdrantManager.client.create_collection(
+        collection_name=collection_name,
+        vectors_config=VectorParams(size=vector_size, distance=distance_metric),
+      )
+      return True
     except Exception as e:
-      logging.error(f"Error deleting documents: {e}")
+      logging.error(f"Error creating collection: {e}")
+      return False
 
-  def search(self, query, top_k=2):
-    """Perform a similarity search in the vector store."""
-    try:
-      self._initialize_vector_store()
-      results = self.vector_store.similarity_search(query, k=top_k)
-      if self.debug: logging.info("Search executed successfully.")
-      return results
-    except Exception as e:
-      logging.error(f"Error performing search: {e}")
-      return []
 
 # Usage Example
 if __name__ == "__main__":
-  try:
-      qdrant_manager = QdrantManager()
+  qdrantManager = QdrantManager()
+  vector_store = qdrantManager.get_vector_store("chatbot")
+   
+  # Prepare your documents, metadata, and IDs
+    # Create documents
+  documents = [
+    Document(
+      page_content="I had chocolate chip pancakes and scrambled eggs for breakfast this morning.",
+      metadata={"source": "tweet"},
+    ),
+    Document(
+      page_content="The weather forecast for tomorrow is cloudy and overcast, with a high of 62 degrees.",
+      metadata={"source": "news"},
+    ),
+  ]
+  
+  # Add documents to the store
+  # added_ids = qdrant.add_documents(documents)
+  # if self.debulogging.info(f"Added document IDs: {added_ids}")
+
+  retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 2})
+  data = retriever.invoke("Stealing from the bank is a crime")
+  print(data)
+
+
+  # try:
+  #   qdrant_manager = QdrantManager()
       
-      # Create documents
-      documents = [
-          Document(
-              page_content="I had chocolate chip pancakes and scrambled eggs for breakfast this morning.",
-              metadata={"source": "tweet"},
-          ),
-          Document(
-              page_content="The weather forecast for tomorrow is cloudy and overcast, with a high of 62 degrees.",
-              metadata={"source": "news"},
-          ),
-      ]
+  #   # Create documents
+  #   documents = [
+  #     Document(
+  #       page_content="I had chocolate chip pancakes and scrambled eggs for breakfast this morning.",
+  #       metadata={"source": "tweet"},
+  #     ),
+  #     Document(
+  #       page_content="The weather forecast for tomorrow is cloudy and overcast, with a high of 62 degrees.",
+  #       metadata={"source": "news"},
+  #     ),
+  #   ]
       
-      # Add documents to the store
-      added_ids = qdrant_manager.add_documents(documents)
-      # if self.debulogging.info(f"Added document IDs: {added_ids}")
-      
-      # Perform a similarity search
-      search_results = qdrant_manager.search("LangChain provides abstractions to make working with LLMs easy", top_k=2)
-      for res in search_results:
-          logging.info(f"* {res.page_content} [{res.metadata}]")
-  except Exception as e:
-      logging.critical(f"Error in main execution: {e}")
+  #   # Add documents to the store
+  #   added_ids = qdrant_manager.add_documents(documents)
+  #   # if self.debulogging.info(f"Added document IDs: {added_ids}")
+    
+  #   # Perform a similarity search
+  #   search_results = qdrant_manager.search("LangChain provides abstractions to make working with LLMs easy", top_k=2)
+  #   for res in search_results:
+  #       logging.info(f"* {res.page_content} [{res.metadata}]")
+  # except Exception as e:
+  #   logging.critical(f"Error in main execution: {e}")

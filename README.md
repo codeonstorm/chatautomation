@@ -12,6 +12,7 @@ pip install fastapi uvicorn
 pip install qdrant_client langchain-core
 # URL Loder
 pip install --upgrade --quiet unstructured
+pip install IPython
 
 
 # Start Qdrant

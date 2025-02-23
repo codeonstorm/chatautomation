@@ -1,23 +1,40 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from langchain.llms import Ollama
+from langgraph.graph import Graph
+import asyncio
 
+# Initialize FastAPI app
 app = FastAPI()
 
-class QueryRequest(BaseModel):
-    question: str
+llm = Ollama(model="llama3.2") 
 
-@app.post("/rag/query")
-async def rag_query(request: QueryRequest):
+# Define a LangGraph-based chat bot
+class LangGraphChatBot:
+    def __init__(self):
+        self.graph = Graph()
+        self.graph.add_node("llm", self.llm_response)
+        self.graph.set_entry_point("llm")
+        self.executor = self.graph.compile()
+
+    async def llm_response(self, input_text):
+        async for chunk in llm.astream(input_text):
+            yield chunk  # Stream response chunks
+
+    async def stream_responses(self, prompt):
+        async for chunk in self.executor.invoke(prompt):
+            yield chunk
+
+# Initialize chatbot instance
+chatbot = LangGraphChatBot()
+
+# WebSocket endpoint
+@app.websocket("/ws/chat")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
     try:
-        # Run the LangGraph workflow
-        result = app.invoke({"question": request.question})
-        return {
-            "answer": result['answer'],
-            "context": result.get('context', '')
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+        while True:
+            prompt = await websocket.receive_text()
+            async for response in chatbot.stream_responses(prompt):
+                await websocket.send_text(response)
+    except WebSocketDisconnect:
+        print("Client disconnected")
