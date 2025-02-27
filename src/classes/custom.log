@@ -1,0 +1,10 @@
+2025-02-27 01:08:42 - SingletonLogger - DEBUG - Debug message: Logging to custom.log
+2025-02-27 01:08:42 - SingletonLogger - INFO - Info message: Logging to custom.log
+2025-02-27 01:08:42 - SingletonLogger - WARNING - Warning message: Still logging to custom.log
+2025-02-27 01:08:42 - SingletonLogger - ERROR - Error message: Still logging to custom.log
+2025-02-27 01:09:42 - SingletonLogger - DEBUG - Debug message: Logging to custom.log
+2025-02-27 01:09:42 - SingletonLogger - INFO - Info message: Logging to custom.log
+2025-02-27 01:10:22 - SingletonLogger - DEBUG - Debug message: Logging to custom.log
+2025-02-27 01:10:22 - SingletonLogger - INFO - Info message: Logging to custom.log
+2025-02-27 01:10:22 - SingletonLogger - WARNING - Warning message: Still logging to custom.log
+2025-02-27 01:10:22 - SingletonLogger - ERROR - Error message: Still logging to custom.log

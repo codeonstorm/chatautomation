@@ -7,6 +7,8 @@ from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from langchain_core.documents import Document
+import sys
+
 
 # Configure logging to store in a file
 logging.basicConfig(
@@ -21,7 +23,7 @@ logging.basicConfig(
 class QdrantManager:
   client = None  #static variable
   
-  def __init__(self, model_name="llama3.2"):
+  def __init__(self, model_name="llama3.2:1b-instruct-q6_Kcls"):
     """Initialize the QdrantManager with collection configuration."""
     try:
       load_dotenv()
@@ -83,6 +85,8 @@ class QdrantManager:
 
 # Usage Example
 if __name__ == "__main__":
+  print(OllamaEmbeddings(model="llama3.2:1b-instruct-q6_K"))
+  sys.exit()
   qdrantManager = QdrantManager()
   vector_store = qdrantManager.get_vector_store("chatbot")
    

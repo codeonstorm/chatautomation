@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat</title>
+</head>
+<body>
+    <h2>Chat</h2>
+    <input type="text" id="token" placeholder="Enter JWT token">
+    <input type="text" id="recipient" placeholder="Recipient username">
+    <textarea id="messages" rows="10" cols="50" readonly></textarea><br>
+    <input type="text" id="message" placeholder="Type a message">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        let socket;
+        function connectWebSocket() {
+            const token = document.getElementById("token").value;
+            socket = new WebSocket(`ws://localhost:8000/ws/chatroom?token=${token}`);
+
+            socket.onmessage = function(event) {
+                let data = JSON.parse(event.data);
+                document.getElementById("messages").value += `${data.sender}: ${data.message}\n`;
+            };
+
+            socket.onclose = function() {
+                alert("Connection closed!");
+            };
+        }
+
+        function sendMessage() {
+            const recipient = document.getElementById("recipient").value;
+            const message = document.getElementById("message").value;
+            socket.send(JSON.stringify({ recipient, message }));
+        }
+    </script>
+    <button onclick="connectWebSocket()">Connect</button>
+</body>
+</html>

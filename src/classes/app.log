@@ -1,0 +1,8 @@
+2025-02-27 00:42:25 - __main__ - INFO - This is an INFO message - logged to both console and file.
+2025-02-27 00:42:25 - __main__ - WARNING - This is a WARNING message - check for potential issues.
+2025-02-27 00:42:25 - __main__ - ERROR - An error occurred while performing division.
+Traceback (most recent call last):
+  File "D:\LLM-ws\chat atomation\src\classes\LoggerManager.py", line 96, in <module>
+    result = 10 / 0
+             ~~~^~~
+ZeroDivisionError: division by zero
