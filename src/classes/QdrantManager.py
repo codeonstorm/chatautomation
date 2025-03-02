@@ -23,12 +23,12 @@ logging.basicConfig(
 class QdrantManager:
   client = None  #static variable
   
-  def __init__(self, model_name="llama3.2:1b-instruct-q6_Kcls"):
+  def __init__(self, model_name="llama3.2:3b-instruct-q3_K_S"):
     """Initialize the QdrantManager with collection configuration."""
     try:
       load_dotenv()
-      self.qdrant_url = os.getenv("QDRANT_CLIENT_URL")
-      self.qdrant_api_key = os.getenv("QDRANT_CLIENT_API_KEY")
+      self.qdrant_url = "http://78.31.67.151:6334"
+      self.qdrant_api_key = ""
       self.debug = os.getenv("DEBUG", False)
       self.vector_store = {}  # Lazy initialization
       
@@ -85,7 +85,7 @@ class QdrantManager:
 
 # Usage Example
 if __name__ == "__main__":
-  print(OllamaEmbeddings(model="llama3.2:1b-instruct-q6_K"))
+  print(OllamaEmbeddings(model="llama3.2:1b-instruct-q3_K_S"))
   sys.exit()
   qdrantManager = QdrantManager()
   vector_store = qdrantManager.get_vector_store("chatbot")

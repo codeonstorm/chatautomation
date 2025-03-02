@@ -56,3 +56,10 @@ Hashes passwords securely so that even if a database is compromised, the passwor
 
 
 uvicorn chatbot1:app --reload
+
+
+#remove pip install docling
+# remove pip install langchain-docling
+# remove fastembed
+https://ds4sd.github.io/docling/examples/rag_langchain/#rag
+#pip install sentence-transformers

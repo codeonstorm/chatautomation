@@ -4,10 +4,7 @@ from qdrant_client.http import models
 import logging
 from langchain_ollama import OllamaEmbeddings
 from uuid import uuid4
-
-
-# Define the type for a point in Qdrant.
-PointType = Dict[str, Any]  # expects keys: "id", "vector", optional "payload"
+import os
 
 class VectorDBManager:
   """
@@ -123,8 +120,6 @@ class VectorDBManager:
 if __name__ == "__main__":
 
   from dotenv import load_dotenv
-  import os
-
   load_dotenv()
 
   qdrant_db = VectorDBManager(
