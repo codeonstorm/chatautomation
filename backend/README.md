@@ -14,6 +14,8 @@ pip install qdrant_client langchain-core
 pip install --upgrade --quiet unstructured
 pip install IPython
 pip install WebSocket
+pip install sqlmodel
+pip install mysql-connector-python
 
 
 # Start Qdrant
@@ -56,6 +58,7 @@ Hashes passwords securely so that even if a database is compromised, the passwor
 
 
 uvicorn chatbot1:app --reload
+pip install python-multipart # fastapi
 
 
 #remove pip install docling
@@ -63,3 +66,9 @@ uvicorn chatbot1:app --reload
 # remove fastembed
 https://ds4sd.github.io/docling/examples/rag_langchain/#rag
 #pip install sentence-transformers
+
+
+
+https://docs.crawl4ai.com/core/quickstart/ (crawl4ai)
+
+openssl rand -hex 32

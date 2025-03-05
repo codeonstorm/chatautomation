@@ -99,8 +99,6 @@ def upsert(client, collection_name: str, data) -> None:
 #   data=chunked_docs
 # )
 
-
-
 # _ = client.add(
 #   collection_name=COLLECTION_NAME,
 #   documents=documents,
@@ -110,14 +108,30 @@ def upsert(client, collection_name: str, data) -> None:
 
 # points = client.query(
 #   collection_name=COLLECTION_NAME,
-#   query_text="Can I split documents?",
+#   query_text="how ecommerece helpfull?",
 #   limit=10,
 # )
 
+# search_results = client.search(
+#   collection_name=COLLECTION_NAME, 
+#   query_vector=embedding_model.encode("How ecomerece help us"),
+#   limit=10,
+#   with_payload=True
+# )
 
-# for i, point in enumerate(points):
+test = client.query_points(
+  collection_name=COLLECTION_NAME, 
+  query=embedding_model.encode("How ecomerece help us"),
+  limit=10,
+  with_payload=True
+)
+
+print(test)
+
+
+# for i, point in enumerate(search_results):
 #     print(f"=== {i} ===")
-#     print(point.document)
+#     print(search_results.document)
 #     print()
 
 

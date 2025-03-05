@@ -5,6 +5,7 @@ from src.classes.QdrantManager import QdrantManager
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 import time
+import uvicorn
 
 app = FastAPI()
 
@@ -180,7 +181,6 @@ async def websocket_endpoint(websocket: WebSocket):
       final_response = chat(
         'llama3.2:1b-instruct-q3_K_L', 
         messages=messages, keep_alive="50m",
-        tempra
       )
     except ResponseError as e:
       print('Error:', e.error)
@@ -194,3 +194,8 @@ async def websocket_endpoint(websocket: WebSocket):
     end_time = time.time()
     elapsed_time = end_time - start_time
     await websocket.send_text(f"{final_response.message.content} time:{elapsed_time}")
+
+
+
+if __name__ == "main":
+  uvicorn.run(app, host="127.0.0.1", port=8000)
