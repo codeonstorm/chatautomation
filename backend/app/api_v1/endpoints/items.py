@@ -7,6 +7,7 @@ from app.core.auth import get_current_active_user
 from app.core.database import get_session
 from app.models.item import Item
 from app.models.user import User
+from app.models.domain import Domain
 from app.schemas.item import ItemCreate, ItemRead, ItemUpdate
 
 router = APIRouter()

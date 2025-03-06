@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
     
     # Database settings
-    DATABASE_URL: str = "sqlite:///fast"
-    # DATABASE_URL: str = "mysql+mysqlconnector://root:@localhost/fast"
+    # DATABASE_URL: str = "sqlite:///fast"
+    DATABASE_URL: str = "mysql+mysqlconnector://root:@localhost/fast"
     
     # JWT settings
     SECRET_KEY: str = "cade9c08b2bbdf09f5307df6ed02d4612892516be7f8f8447dbb662c3179660d"  # Change in production!
