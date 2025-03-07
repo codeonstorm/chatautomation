@@ -31,7 +31,7 @@ export function AddDomainDialog() {
             {/* <Label htmlFor="username" className="text-right">
               Domain Name
             </Label> */}
-            <Input id="username" value="" className="col-span-4" />
+            <Input id="username" className="col-span-4" />
           </div>
         </div>
         <DialogFooter>

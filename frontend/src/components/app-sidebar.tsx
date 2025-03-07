@@ -16,6 +16,7 @@ import {
   Globe,
   PlusCircle,
   MoreHorizontal,
+  MessageCircle
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"

@@ -247,7 +247,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, Pencil, Trash2 } from "lucide-react"
+import { PlusCircle, Pencil, Trash2, BookOpen, Eye } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -276,6 +276,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+
+import { useRouter } from "next/navigation"
 
 // Form schema for chatbot creation/editing
 const chatbotFormSchema = z.object({
@@ -311,6 +313,7 @@ export function ChatbotList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingChatbot, setEditingChatbot] = useState<number | null>(null)
   // const { toast } = useToast()
+  const router = useRouter()
 
   const form = useForm<ChatbotFormValues>({
     resolver: zodResolver(chatbotFormSchema),
@@ -513,6 +516,20 @@ export function ChatbotList() {
                   <Button variant="outline" size="sm" onClick={() => handleEdit(bot.id)}>
                     <Pencil className="h-4 w-4 mr-1" /> Edit
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-primary hover:text-primary-foreground hover:bg-primary"
+                    onClick={() => router.push(`/dashboard/chatbots/train/${bot.id}`)}>
+                    <BookOpen className="h-4 w-4 mr-1" /> Train
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-500 hover:text-blue-700"
+                    onClick={() => router.push(`/dashboard/chatbots/preview/${bot.id}`)}>
+                    <Eye className="h-4 w-4 mr-1" /> Preview
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-red-500 hover:text-red-700">
@@ -543,7 +560,7 @@ export function ChatbotList() {
 
       {/* Chatbot Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] overflow-y-scroll max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>{editingChatbot ? "Edit Chatbot" : "Create New Chatbot"}</DialogTitle>
             <DialogDescription>
