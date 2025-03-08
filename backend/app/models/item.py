@@ -9,5 +9,6 @@ class Item(SQLModel, table=True):
     description: Optional[str] = None
     owner_id: int = Field(foreign_key="users.id")
     
+    
     owner: "User" = Relationship(back_populates="items")
 

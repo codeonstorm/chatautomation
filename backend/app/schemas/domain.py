@@ -3,23 +3,16 @@ from pydantic import BaseModel, HttpUrl
 from datetime import datetime
 
 class DomainBase(BaseModel):
-    name: str
-    url: str
-    description: Optional[str] = None
-    is_active: Optional[bool] = True
+    domain: str
 
 class DomainCreate(DomainBase):
     pass
-
+    
 class DomainUpdate(BaseModel):
-    name: Optional[str] = None
-    url: Optional[str] = None
-    description: Optional[str] = None
-    is_active: Optional[bool] = None
+    uuid: str 
 
 class DomainRead(DomainBase):
-    id: int
     uuid: str
+    is_active: bool
     created_at: datetime
     updated_at: datetime
-

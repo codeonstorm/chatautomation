@@ -20,7 +20,11 @@ def create_domain(
     """
     Create a new domain for chatbot
     """
-    domain = Domain(**domain_in.dict())
+    domain = Domain(
+        domain=domain_in.domain,
+        is_active=True,
+        user_id=current_user.id
+    )
     
     db.add(domain)
     db.commit()
@@ -28,7 +32,7 @@ def create_domain(
     
     return domain
 
-@router.get("", response_model=List[DomainRead])
+@router.get("", response_model=List[DomainRead], status_code=status.HTTP_200_OK)
 def read_domains(
     *,
     db: Session = Depends(get_session),
@@ -36,23 +40,25 @@ def read_domains(
     limit: int = 100,
     current_user: User = Depends(get_current_active_user)
 ):
-    """
-    Retrieve domains
-    """
-    domains = db.exec(select(Domain).offset(skip).limit(limit)).all()
+    domains = db.exec(select(Domain).where(Domain.user_id == current_user.id).offset(skip).limit(limit)).all()
     return domains
 
-@router.get("/{domain_id}", response_model=DomainRead)
+@router.get("/{uuid}", response_model=DomainRead)
 def read_domain(
     *,
     db: Session = Depends(get_session),
-    domain_id: int,
+    uuid: str,
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Get a specific domain by id
+    Get a specific domain by uuid
     """
-    domain = db.get(Domain, domain_id)
+    # domain = db.get(Domain, domain_id)
+    domain = db.exec(
+        select(Domain)
+        .where(Domain.user_id == current_user.id)
+        .where(Domain.uuid == uuid)
+    ).first()
     
     if not domain:
         raise HTTPException(
@@ -62,49 +68,21 @@ def read_domain(
     
     return domain
 
-@router.put("/{domain_id}", response_model=DomainRead)
-def update_domain(
-    *,
-    db: Session = Depends(get_session),
-    domain_id: int,
-    domain_in: DomainUpdate,
-    current_user: User = Depends(get_current_active_user)
-):
-    """
-    Update a domain
-    """
-    domain = db.get(Domain, domain_id)
-    
-    if not domain:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Domain not found"
-        )
-    
-    domain_data = domain_in.dict(exclude_unset=True)
-    
-    for key, value in domain_data.items():
-        setattr(domain, key, value)
-    
-    domain.updated_at = datetime.utcnow()
-    
-    db.add(domain)
-    db.commit()
-    db.refresh(domain)
-    
-    return domain
-
-@router.delete("/{domain_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{uuid}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_domain(
     *,
     db: Session = Depends(get_session),
-    domain_id: int,
+    uuid: str,
     current_user: User = Depends(get_current_active_user)
 ):
     """
     Delete a domain
     """
-    domain = db.get(Domain, domain_id)
+    domain = db.exec(
+        select(Domain)
+        .where(Domain.user_id == current_user.id)
+        .where(Domain.uuid == uuid)
+    ).first()
     
     if not domain:
         raise HTTPException(

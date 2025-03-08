@@ -29,7 +29,7 @@ def login_access_token(
     OAuth2 compatible token login, get an access token for future requests
     """
     user = db.exec(select(User).where(User.email == form_data.username)).first()
-    
+    print(form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -15,13 +15,14 @@ class Chatbot(SQLModel, table=True):
     temperature: float = Field(default=0.7)
     primary_color: str = Field(default="#4a56e2")
     secondary_color: str = Field(default="#ffffff")
-    domain_id: int = Field(foreign_key="domains.id")
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+    # domain_id: int = Field(foreign_key="domains.id")  
+    user_id: int = Field(foreign_key="users.id")  
+
     # Relationships
-    domain: "Domain" = Relationship(back_populates="chatbots")
-    faqs: List["FAQ"] = Relationship(back_populates="chatbot")
-    chats: List["Chat"] = Relationship(back_populates="chatbot")
+    # domain: "Domain" = Relationship(back_populates="chatbots")
+    # faqs: List["FAQ"] = Relationship(back_populates="chatbot")
+    # chats: List["Chat"] = Relationship(back_populates="chatbot")
 

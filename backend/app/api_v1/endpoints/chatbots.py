@@ -23,14 +23,14 @@ def create_chatbot(
     Create a new chatbot
     """
     # Check if domain exists
-    domain = db.get(Domain, chatbot_in.domain_id)
-    if not domain:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Domain not found"
-        )
+    # domain = db.get(Domain, chatbot_in.domain_id)
+    # if not domain:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND,
+    #         detail="Domain not found"
+    #     )
     
-    chatbot = Chatbot(**chatbot_in.dict())
+    chatbot = Chatbot(**chatbot_in.model_dump(), user_id=current_user.id)
     
     db.add(chatbot)
     db.commit()
@@ -39,10 +39,10 @@ def create_chatbot(
     return chatbot
 
 @router.get("", response_model=List[ChatbotRead])
-def read_chatbots(
+def get_chatbots(
     *,
     db: Session = Depends(get_session),
-    domain_id: int = None,
+    # domain_id: int = None,
     skip: int = 0,
     limit: int = 100,
     current_user: User = Depends(get_current_active_user)
@@ -50,10 +50,10 @@ def read_chatbots(
     """
     Get all created chatbots
     """
-    query = select(Chatbot)
+    query = select(Chatbot).where(Chatbot.user_id == current_user.id)
     
-    if domain_id:
-        query = query.where(Chatbot.domain_id == domain_id)
+    # if domain_id:
+    #     query = query.where(Chatbot.domain_id == domain_id)
     
     chatbots = db.exec(query.offset(skip).limit(limit)).all()
     return chatbots
