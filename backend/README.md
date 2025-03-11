@@ -78,5 +78,5 @@ openssl rand -hex 32
 
 
 ## migration
-# revision --autogenerate -m "initial"
+# alembic revision --autogenerate -m "initial"
 # alembic upgrade head
