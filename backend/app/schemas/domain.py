@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from datetime import datetime
 
 class DomainBase(BaseModel):
@@ -15,4 +15,3 @@ class DomainRead(DomainBase):
     uuid: str
     is_active: bool
     created_at: datetime
-    updated_at: datetime

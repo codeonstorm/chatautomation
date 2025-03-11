@@ -2,6 +2,8 @@ from fastapi import APIRouter
 
 from app.api_v1.endpoints import auth, users, domains, chatbots
 # items, scraping_urls, scraping_tasks, chatbots, chats, faqs
+from app.api_v1.endpoints import workspace
+
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -23,3 +25,6 @@ api_router.include_router(domains.router, prefix="/domains", tags=["domains"])
 api_router.include_router(chatbots.router, prefix="/chatbots", tags=["chatbots"])
 # api_router.include_router(chats.router, prefix="/chats", tags=["chats"])
 # api_router.include_router(faqs.router, prefix="/faqs", tags=["faqs"])
+
+# workspace
+api_router.include_router(workspace.router, prefix="/workspaces", tags=["workspaces"])

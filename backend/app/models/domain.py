@@ -8,11 +8,10 @@ from datetime import datetime
 class Domain(SQLModel, table=True):
     __tablename__ = "domains"
     
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(default=None, primary_key=True)
     uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True)
     domain: str
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
     user_id: int = Field(foreign_key="users.id")  
 

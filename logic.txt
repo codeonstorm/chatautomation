@@ -1,0 +1,22 @@
+services
+  |
+users
+  |
+domains
+  |
+chatbots
+  |
+Data Ingestion
+  |
+register chatbot w/ domains
+  |
+get Embedded code
+
+
+services
+  |
+Invitation 
+  |
+Workspace
+  |
+do something...

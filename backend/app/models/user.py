@@ -4,7 +4,8 @@ from sqlmodel import Field, Relationship, SQLModel
 class User(SQLModel, table=True):
     __tablename__ = "users"
     
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int = Field(primary_key=True)
+    service_id: int = Field(foreign_key="services.service_id")
     email: str = Field(unique=True, index=True)
     full_name: str = Field(index=True)
     hashed_password: str

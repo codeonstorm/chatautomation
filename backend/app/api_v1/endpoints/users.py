@@ -7,6 +7,7 @@ from app.core.auth import get_current_active_superuser, get_current_active_user
 from app.core.database import get_session
 from app.core.security import get_password_hash
 from app.models.user import User
+from app.models.service import Service
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 
 router = APIRouter()

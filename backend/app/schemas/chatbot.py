@@ -10,7 +10,6 @@ class ChatbotBase(BaseModel):
     primary_color: str = "#4a56e2"
     secondary_color: str = "#ffffff"
     # domain_uuid: str
-    is_active: bool = True
 
     @validator('temperature')
     def validate_temperature(cls, v):
@@ -23,9 +22,11 @@ class ChatbotCreate(ChatbotBase):
 
 class ChatbotUpdate(ChatbotBase):
     uuid: str
+    is_active: bool = True
 
 class ChatbotRead(ChatbotBase):
     uuid: str
+    is_active: bool = True
     created_at: datetime
     updated_at: datetime
 

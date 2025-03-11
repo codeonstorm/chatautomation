@@ -16,6 +16,7 @@ pip install IPython
 pip install WebSocket
 pip install sqlmodel
 pip install mysql-connector-python
+pip install alembic
 
 
 # Start Qdrant
@@ -58,7 +59,9 @@ Hashes passwords securely so that even if a database is compromised, the passwor
 
 
 uvicorn chatbot1:app --reload
+# alembic init migrations (init alembic)
 pip install python-multipart # fastapi
+
 
 
 #remove pip install docling
@@ -72,3 +75,8 @@ https://ds4sd.github.io/docling/examples/rag_langchain/#rag
 https://docs.crawl4ai.com/core/quickstart/ (crawl4ai)
 
 openssl rand -hex 32
+
+
+## migration
+# revision --autogenerate -m "initial"
+# alembic upgrade head
