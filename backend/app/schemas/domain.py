@@ -1,17 +1,19 @@
-from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
+from app.schemas.enums import StatusEnum
+from uuid import UUID
 
 class DomainBase(BaseModel):
-    domain: str
+  domain: str
 
 class DomainCreate(DomainBase):
-    pass
-    
-class DomainUpdate(BaseModel):
-    uuid: str 
+  pass
 
 class DomainRead(DomainBase):
-    uuid: str
-    is_active: bool
-    created_at: datetime
+  uuid: UUID
+  service_id: int
+  status: StatusEnum
+  created_at: datetime
+
+class DomainUpdate(BaseModel):
+  status: StatusEnum

@@ -1,30 +1,16 @@
 from fastapi import APIRouter
 
-from app.api_v1.endpoints import auth, users, domains, chatbots
-# items, scraping_urls, scraping_tasks, chatbots, chats, faqs
-from app.api_v1.endpoints import workspace
-
+from app.api_v1.routes import plans
+from app.api_v1.routes import users
+from app.api_v1.routes import auth
+from app.api_v1.routes import chatbots
+from app.api_v1.routes import domains
+from app.api_v1.routes import resumable
 
 api_router = APIRouter()
-api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
-api_router.include_router(users.router, prefix="/users", tags=["users"])
-# api_router.include_router(items.router, prefix="/items", tags=["items"])
-# api_router.include_router(domain.router, prefix="/domains", tags=["domains"])
-
-# Chat functionality
-# api_router.include_router(chat_ws.router, prefix="/chat", tags=["chat"])
-
-# Domain management
-api_router.include_router(domains.router, prefix="/domains", tags=["domains"])
-
-# # Web scraping
-# api_router.include_router(scraping_urls.router, prefix="/scraping/urls", tags=["scraping"])
-# api_router.include_router(scraping_tasks.router, prefix="/scraping", tags=["scraping"])
-
-# # Chatbot management
-api_router.include_router(chatbots.router, prefix="/chatbots", tags=["chatbots"])
-# api_router.include_router(chats.router, prefix="/chats", tags=["chats"])
-# api_router.include_router(faqs.router, prefix="/faqs", tags=["faqs"])
-
-# workspace
-api_router.include_router(workspace.router, prefix="/workspaces", tags=["workspaces"])
+api_router.include_router(plans.router)
+api_router.include_router(users.router)
+api_router.include_router(auth.router)
+api_router.include_router(chatbots.router)
+api_router.include_router(domains.router)
+api_router.include_router(resumable.router)

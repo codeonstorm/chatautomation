@@ -1,22 +1,83 @@
-services
-  |
-users
-  |
-domains
-  |
-chatbots
-  |
-Data Ingestion
-  |
+1st:
+
+workflow to crate a chabot service where user can create chatbot, register their domain to use chatbot.
+they are able upload data to train chatbot on it.
+
+services (free, silver, gold, premium)
+   | 
+users (user can buy multiple services) (user type: owner, admin, user)
+   | 
+domains (user should able to register multiple domain in there service)
+   | 
+chatbots (user should able to crate multiple cusom chatbot)
+   | 
+Data Ingestion (user able to upload data format (ppt, pdf, txt, website urls, docs etc..) to train their chatbot on it)
+   | 
 register chatbot w/ domains
-  |
-get Embedded code
+   | 
+get Embedded code (user able to get chatbot Embedded code to add on there website)
 
 
+User(owner, admin) should able to view chatbot's chat history of each session.
+inside there **route: service_id/domain_uuid/chatnot_uuid
+
+
+Tables:
+
+plans:
+ | id | name | description | price | billing_cycle | status:enum(enabled/disabled/deleted) | trial_period | features | created_at | deleted_at |
+
+services:
+ | id | plan_id | status:enum(enabled/disabled/deleted) | created_at | expired_at | 
+
+users:
+ | id | name | email | password | role:enum(superadmin/admin/user) | status:enum(enabled/disabled/deleted) | last_login | verified | created_at | deleted_at | 
+
+user_verification:
+ | user_id | verification_link | created_at | expired_at | 
+
+profiles:
+ | user_id | meta_data | 
+
+user_service_subscribed:
+ | service_id | user_id | subscription_date | status:enum(active/canceled/expired) |
+
+domains:
+ | id | uuid | service_id | domain | verified:enum(true/false) | last_checked | status:enum(active/inactive) | created_at
+
+chatbots:
+ | id | uuid | service_id | owner_id | version | name | description | type:chatbot_type | status:enum(enabled/disabled/deleted) | traning_status | other.. | created_at | last_trained | 
+
+chatbot_data:
+ | chatbot_id | file_format | data_loc | filesize | allowed_training:enum(true/false) | created_at | 
+
+chat_history:
+ | chatbot_id | domain_id | session_id | type:enum(bot/client) | message | feedback:enum(positive/neutral/negative) | response_time | timestamp | 
+
+
+chatbot_type:enum(
+  'sales',          -- For lead generation, product recommendations, etc.
+  'support',        -- For customer support, FAQs, and ticketing systems.
+  'onboarding',     -- For guiding new users through setup or initial steps.
+  'feedback',       -- For collecting reviews, surveys, or customer opinions.
+  'booking',        -- For scheduling appointments, reservations, or orders.
+  'e-commerce',     -- For handling product browsing, cart updates, and checkout.
+  'internal_assistant', -- For employee support, HR inquiries, and IT helpdesk.
+  'knowledge_base', -- For providing detailed information from a data repository.
+  'marketing',      -- For campaigns, promotions, and user engagement.
+  'event',          -- For managing event details, ticket sales, and reminders.
+  'education',      -- For tutoring, e-learning guidance, or skill development.
+  'healthcare',     -- For symptom checks, appointment scheduling, or FAQs.
+  'entertainment',  -- For games, quizzes, or interactive experiences.
+  'news',           -- For sharing news updates, alerts, or summaries.
+  'custom'          -- For user-defined functionalities or niche use cases.
+)
+
+2nd:
 services
-  |
-Invitation 
-  |
-Workspace
-  |
+   | 
+Invitation (user should able to Invitation others via email)
+   | 
+Workspace (owner should able to assign workspace) (Workspace permission: owner, admin, user)
+   | 
 do something...

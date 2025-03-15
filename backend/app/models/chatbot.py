@@ -1,28 +1,24 @@
-from typing import Optional, List
-from sqlmodel import Field, SQLModel, Relationship
 import uuid
+from uuid import UUID
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
-# from app.models import Domain, FAQ, Chat
+from app.schemas.enums import StatusEnum
+# from app.models.service import Service
 
 class Chatbot(SQLModel, table=True):
-    __tablename__ = "chatbots"
-    
-    id: Optional[int] = Field(default=None, primary_key=True)
-    uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True)
-    name: str
-    behavior: Optional[str] = None
-    system_prompt: str
-    temperature: float = Field(default=0.7)
-    primary_color: str = Field(default="#4a56e2")
-    secondary_color: str = Field(default="#ffffff")
-    is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-    # domain_id: int = Field(foreign_key="domains.id")  
-    user_id: int = Field(foreign_key="users.id")  
+  __tablename__ = "chatbots"
+  uuid: UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+  service_id: int = Field(foreign_key="services.id", nullable=False)    
+  name: str = Field(max_length=255)
+  description: str = Field(max_length=255)
+  behavior: str | None = Field(default=None)
+  system_prompt: str | None = Field(default=None)
+  temperature: float = Field(default=0.7)
 
-    # Relationships
-    # domain: "Domain" = Relationship(back_populates="chatbots")
-    # faqs: List["FAQ"] = Relationship(back_populates="chatbot")
-    # chats: List["Chat"] = Relationship(back_populates="chatbot")
-
+  primary_color: str = Field(default="#4a56e2")
+  secondary_color: str = Field(default="#ffffff")
+  status: StatusEnum = Field(default=StatusEnum.enabled)
+  created_at: datetime = Field(default_factory=datetime.utcnow)
+  last_trained: datetime | None = Field(default=None)
+  
+  # traning_status |

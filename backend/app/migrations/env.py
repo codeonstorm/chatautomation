@@ -8,11 +8,18 @@ from sqlalchemy import pool
 from alembic import context
 from sqlmodel import SQLModel
 
-from app.models.service import Service
+# from app.models.service import Service
+# from app.models.user import User
+# from app.models.domain import Domain
+# from app.models.chatbot import Chatbot
+# from app.models.workspace import Workspace, WorkspaceMember
+# from app.models import *
+
+from app.models.plan import Plan
 from app.models.user import User
-from app.models.domain import Domain
+from app.models.service import Service
 from app.models.chatbot import Chatbot
-from app.models.workspace import Workspace, WorkspaceMember
+from app.models.domain import Domain
 
 load_dotenv()
 

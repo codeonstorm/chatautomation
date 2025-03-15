@@ -9,13 +9,15 @@ from app.core.config import settings
 from app.core.database import get_session
 from app.models.user import User
 from app.schemas.token import TokenPayload
+from app.schemas.enums import StatusEnum
+from app.schemas.user import UserRead
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_session)
-) -> User:
+) -> UserRead:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -44,18 +46,27 @@ async def get_current_user(
             detail="User not found"
         )
     
-    if not user.is_active:
+    if user.status == StatusEnum.disabled or user.status == StatusEnum.deleted:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
         )
-    
-    return user
+    print("+++++", user)
+    return UserRead(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        role= user.role,
+        status=user.status,
+        last_login=user.last_login,
+        verified=user.verified,
+        created_at=user.created_at
+    )
 
 def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if not current_user.is_active:
+    if not current_user.status == StatusEnum.disabled or current_user.status == StatusEnum.deleted :
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
@@ -65,6 +76,7 @@ def get_current_active_user(
 def get_current_active_superuser(
     current_user: User = Depends(get_current_user),
 ) -> User:
+    print('======', current_user)
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

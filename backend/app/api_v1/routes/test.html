@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resumable.js + FastAPI</title>
+    <script src="https://cdn.jsdelivr.net/npm/resumablejs/resumable.js"></script>
+</head>
+<body>
+    <h1>Upload Files</h1>
+    <button id="browseButton">Select Files</button>
+    <div id="fileList"></div>
+
+    <script>
+        const r = new Resumable({
+            target: 'http://127.0.0.1:8000/api/v1/uploads',
+            chunkSize: 1 * 1024 * 1024, // 1MB
+            simultaneousUploads: 3,
+            testChunks: true,
+        });
+
+        r.assignBrowse(document.getElementById('browseButton'));
+
+        r.on('fileAdded', function(file) {
+            const fileList = document.getElementById('fileList');
+            const listItem = document.createElement('div');
+            listItem.id = `file-${file.uniqueIdentifier}`;
+            listItem.innerHTML = `<strong>${file.fileName}</strong> (${file.size} bytes) <span id="progress-${file.uniqueIdentifier}">0%</span>`;
+            fileList.appendChild(listItem);
+            r.upload();
+        });
+
+        r.on('fileProgress', function(file) {
+            const progress = Math.floor(file.progress() * 100);
+            document.getElementById(`progress-${file.uniqueIdentifier}`).innerText = `${progress}%`;
+        });
+
+        r.on('fileSuccess', function(file) {
+            document.getElementById(`progress-${file.uniqueIdentifier}`).innerText = 'Completed';
+        });
+
+        r.on('fileError', function(file, message) {
+            document.getElementById(`progress-${file.uniqueIdentifier}`).innerText = `Error: ${message}`;
+        });
+    </script>
+</body>
+</html>

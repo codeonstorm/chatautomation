@@ -1,19 +1,27 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
+from app.schemas.enums import UserRoleEnum, StatusEnum
 
 class UserBase(BaseModel):
-    email: Optional[EmailStr] = None
-    full_name: Optional[str] = None
-    is_active: Optional[bool] = True
-    # is_superuser: Optional[bool] = False
+  """Base model for user."""
+  email: EmailStr
+  name: str
+  # is_active: Optional[bool] = True
 
 class UserCreate(UserBase):
-    password: str
+  """Model for creating a user."""
+  password: str
 
 class UserUpdate(UserBase):
-    password: Optional[str] = None
+  """Model for updating a user."""
+  password: str
 
 class UserRead(UserBase):
-    service_id: int
-    id: int
-
+  """Model for reading user details."""
+  id: int
+  role: UserRoleEnum
+  status: StatusEnum
+  last_login: Optional[datetime] = None
+  verified: bool
+  created_at: datetime

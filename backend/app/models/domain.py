@@ -1,17 +1,15 @@
-from typing import Optional, List
-from sqlmodel import Field, SQLModel, Relationship
 import uuid
+from uuid import UUID
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
-# from app.models import ScrapingURL, Chatbot, Chat
-# from app.models.user import User
+from app.schemas.enums import StatusEnum
+# from app.models.service import Service
 
 class Domain(SQLModel, table=True):
-    __tablename__ = "domains"
-    
-    id: int = Field(default=None, primary_key=True)
-    uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True)
-    domain: str
-    is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    user_id: int = Field(foreign_key="users.id")  
-
+  __tablename__ = "domains"
+  uuid: UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+  service_id: int = Field(foreign_key="services.id", nullable=False)    
+  domain: str = Field(max_length=255, nullable=False)
+  verified: bool = Field(default=False)
+  status: StatusEnum = Field(default=StatusEnum.enabled)
+  created_at: datetime = Field(default_factory=datetime.utcnow)

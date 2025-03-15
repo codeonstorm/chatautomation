@@ -80,3 +80,6 @@ openssl rand -hex 32
 ## migration
 # alembic revision --autogenerate -m "initial"
 # alembic upgrade head
+# alembic history
+# alembic stamp head
+

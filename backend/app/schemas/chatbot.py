@@ -1,32 +1,29 @@
-from typing import Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel
 from datetime import datetime
+from app.schemas.enums import StatusEnum
+from uuid import UUID
 
 class ChatbotBase(BaseModel):
-    name: str
-    behavior: Optional[str]
-    system_prompt: str | None
-    temperature: float = 0.7
-    primary_color: str = "#4a56e2"
-    secondary_color: str = "#ffffff"
-    # domain_uuid: str
-
-    @validator('temperature')
-    def validate_temperature(cls, v):
-        if v < 0 or v > 1:
-            raise ValueError('Temperature must be between 0 and 1')
-        return v
+  name: str
+  description: str
+  behavior: str
+  system_prompt: str
+  temperature: float
+  primary_color: str
+  secondary_color: str
 
 class ChatbotCreate(ChatbotBase):
-    pass
-
-class ChatbotUpdate(ChatbotBase):
-    uuid: str
-    is_active: bool = True
+  name: str
+  description: str
 
 class ChatbotRead(ChatbotBase):
-    uuid: str
-    is_active: bool = True
-    created_at: datetime
-    updated_at: datetime
+  uuid: UUID
+  service_id: int
+  created_at: datetime
+  last_trained: datetime | None
 
+class ChatbotUpdate(ChatbotBase):
+  name: str | None = None
+  description: str | None = None
+  temperature: float | None = None
+  status: StatusEnum
