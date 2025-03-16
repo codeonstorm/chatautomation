@@ -1,7 +1,13 @@
-from fastapi import FastAPI, Request, UploadFile, HTTPException, APIRouter, status
+from fastapi import FastAPI, Request, UploadFile, HTTPException, APIRouter, status, Depends
 from fastapi.responses import JSONResponse, HTMLResponse
 from pathlib import Path
 import os
+import mimetypes
+
+from sqlmodel import Session
+from app.models.dataset import Dataset
+
+from app.core.database import get_session
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -21,7 +27,7 @@ html = '''
 
     <script>
         const r = new Resumable({
-            target: 'http://127.0.0.1:8000/api/v1/uploads',
+            target: 'http://127.0.0.1:8000/api/v1/1/uploads',
             chunkSize: 1 * 1024 * 1024, // 1MB
             simultaneousUploads: 3,
             testChunks: true,
@@ -56,7 +62,7 @@ html = '''
 
 '''
 
-router = APIRouter(prefix="/uploads", tags=["uploads"])
+router = APIRouter(prefix="/{service_id}/uploads", tags=["uploads"])
 
 @router.get("")
 async def check_chunk(resumableIdentifier: str, resumableFilename: str, resumableChunkNumber: int):
@@ -66,12 +72,13 @@ async def check_chunk(resumableIdentifier: str, resumableFilename: str, resumabl
     return JSONResponse(status_code=404, content={"status": "not found"})
 
 @router.post("")
-async def upload_chunk(request: Request):
+async def upload_chunk(request: Request, service_id: int, session: Session = Depends(get_session)):
     form = await request.form()
     chunk_number = int(form.get("resumableChunkNumber"))
     identifier = form.get("resumableIdentifier")
     filename = form.get("resumableFilename")
     chunk = form.get("file")
+    filesize = form.get("resumableTotalSize")
 
     if not all([chunk_number, identifier, filename, chunk]):
         raise HTTPException(status_code=400, detail="Missing upload parameters")
@@ -89,12 +96,22 @@ async def upload_chunk(request: Request):
                 with chunk_file.open("rb") as cf:
                     final_file.write(cf.read())
                 os.remove(chunk_file)
+        
+        # Detect file type using mimetypes
+        file_type, _ = mimetypes.guess_type(UPLOAD_DIR / filename)
+
+        dataset = Dataset(
+            service_id=service_id,
+            name=filename,
+            file_format=file_type,
+            filesize=filesize,
+            allowed_training = False,
+        )
+        session.add(dataset)
+        session.commit()
 
     return JSONResponse(status_code=200, content={"status": "chunk uploaded"})
 
 @router.get("/file", response_class=HTMLResponse)
 async def upload_file():
-    """
-    Get the chat UI
-    """
     return HTMLResponse(content=html)

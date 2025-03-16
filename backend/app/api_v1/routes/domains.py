@@ -50,7 +50,7 @@ def update_domain(service_id: int, domain_id: UUID, domain_update: DomainUpdate,
   if not domain:
     raise HTTPException(status_code=404, detail="Domain not found")
 
-  domain_data = domain_update.dict(exclude_unset=True)
+  domain_data = domain_update.model_dump(exclude_unset=True)
   for key, value in domain_data.items():
     setattr(domain, key, value)
 

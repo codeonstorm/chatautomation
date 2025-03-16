@@ -20,6 +20,7 @@ from app.models.user import User
 from app.models.service import Service
 from app.models.chatbot import Chatbot
 from app.models.domain import Domain
+from app.models.dataset import Dataset
 
 load_dotenv()
 

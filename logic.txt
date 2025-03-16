@@ -48,8 +48,8 @@ domains:
 chatbots:
  | id | uuid | service_id | owner_id | version | name | description | type:chatbot_type | status:enum(enabled/disabled/deleted) | traning_status | other.. | created_at | last_trained | 
 
-chatbot_data:
- | chatbot_id | file_format | data_loc | filesize | allowed_training:enum(true/false) | created_at | 
+datasets:
+ | service_id | file_format | filesize | allowed_training:enum(true/false) | created_at | 
 
 chat_history:
  | chatbot_id | domain_id | session_id | type:enum(bot/client) | message | feedback:enum(positive/neutral/negative) | response_time | timestamp | 
