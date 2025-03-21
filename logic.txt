@@ -49,7 +49,7 @@ chatbots:
  | id | uuid | service_id | owner_id | version | name | description | type:chatbot_type | status:enum(enabled/disabled/deleted) | traning_status | other.. | created_at | last_trained | 
 
 datasets:
- | service_id | file_format | filesize | allowed_training:enum(true/false) | created_at | 
+ | service_id | file_format | filesize | allowed_training:enum(true/false) | created_at | X
 
 chat_history:
  | chatbot_id | domain_id | session_id | type:enum(bot/client) | message | feedback:enum(positive/neutral/negative) | response_time | timestamp | 
@@ -81,3 +81,13 @@ Invitation (user should able to Invitation others via email)
 Workspace (owner should able to assign workspace) (Workspace permission: owner, admin, user)
    | 
 do something...
+
+
+
+## traning process: (datasets, chatbots)
+User able to select dataset for a chabot traning.
+train chatbot in background process w/ propper progress status.
+1. Create collection ({chatbot_uuid}_{service_id})
+2. Ingest chunked data
+
+
