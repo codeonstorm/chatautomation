@@ -1,8 +1,10 @@
 export interface User {
-  id: string
+  id: number
   email: string
-  full_name: string
-  is_active: boolean
-  is_superuser: boolean
+  name: string
+  role: string,
+  status: string,
+  last_login: string | null,
+  verified: boolean,
+  created_at: string
 }
-

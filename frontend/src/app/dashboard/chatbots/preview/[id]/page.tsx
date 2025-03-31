@@ -57,7 +57,7 @@ export default function ChatbotPreviewPage() {
   }
 
   return (
-    <div className={`container mx-auto py-6 ${darkMode ? "dark" : ""}`}>
+    <div className={`container mx-auto py-6 px-4 ${darkMode ? "dark" : ""}`}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" onClick={() => router.back()}>

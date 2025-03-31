@@ -3,8 +3,8 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useAuth } from "@/app/lib/auth-context"
-import { updateUser } from "@/app/lib/auth-service"
+import { useAuth } from "@/context/auth-context"
+import { updateUser } from "@/services/auth-service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"

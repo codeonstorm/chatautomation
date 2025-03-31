@@ -2,7 +2,10 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
+  return NextResponse.next()
   const accessToken = request.cookies.get("accessToken")?.value
+  console.log(accessToken);
+  
   const isAuthPage = request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register"
 
   // If trying to access auth page while logged in, redirect to dashboard

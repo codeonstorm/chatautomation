@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/app/lib/auth-context"
+import { useAuth } from "@/context/auth-context"
 
 export default function HomePage() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -26,4 +26,5 @@ export default function HomePage() {
     </div>
   )
 }
+
 

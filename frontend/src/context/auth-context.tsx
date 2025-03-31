@@ -1,11 +1,12 @@
 "use client"
 
 import type React from "react"
+import { NextResponse } from "next/server";
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import type { User } from "@/types/user"
-import { login, refreshToken, getCurrentUser } from "@/app/lib/auth-service"
+import { login, refreshToken, getCurrentUser } from "@/services/auth-service"
 
 interface AuthContextType {
   user: User | null
@@ -70,6 +71,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("accessToken", access_token)
       localStorage.setItem("refreshToken", refresh_token)
 
+      // Set new tokens as cookies
+      const response = NextResponse.next();
+      console.log("**********");
+      
+      response.cookies.set("accessToken", access_token, {
+        httpOnly: true, // Prevent JavaScript access
+        path: "/",
+        maxAge: 60 * 60 * 24, // 1 day expiration
+        // secure: false // Only set in HTTPS in production
+      });
+
+      response.cookies.set("refreshToken", refresh_token, {
+        httpOnly: true, // Prevent JavaScript access
+        path: "/",
+        maxAge: 60 * 60 * 24, // 1 day expiration
+        // secure: false, // Only set in HTTPS in production
+      });
+      console.log("****ug******");
+
+
       const userData = await getCurrentUser()
       setUser(userData)
 
@@ -98,6 +119,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       localStorage.setItem("accessToken", access_token)
       localStorage.setItem("refreshToken", refresh_token)
+      document.cookie = `accessToken=${access_token}; path=/; SameSite=Strict`;
+
+      const response = NextResponse.next();
+      response.cookies.set("accessToken", access_token, {
+        httpOnly: true, // Prevent JavaScript access
+        path: "/",
+        maxAge: 60 * 60 * 24, // 1 day expiration
+        // secure: false // Only set in HTTPS in production
+      });
+
+      response.cookies.set("refreshToken", refresh_token, {
+        httpOnly: true, // Prevent JavaScript access
+        path: "/",
+        maxAge: 60 * 60 * 24, // 1 day expiration
+        // secure: false, // Only set in HTTPS in production
+      });
 
       const userData = await getCurrentUser()
       setUser(userData)

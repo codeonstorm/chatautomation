@@ -59,7 +59,7 @@ export async function refreshToken(refresh_token: string) {
 export async function getCurrentUser(): Promise<User> {
   const accessToken = localStorage.getItem("accessToken")
 
-  const response = await fetch(`${API_URL}/users/me`, {
+  const response = await fetch(`${API_URL}/users/user`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
