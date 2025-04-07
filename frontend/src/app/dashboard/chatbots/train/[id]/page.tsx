@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import {fileMetaType} from "@/types/file"
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -71,17 +72,10 @@ import {
 } from "lucide-react";
 
 import {getFileList} from "@/services/filemanager"
+import {convertSize} from "@/lib/utils"
 
 interface Progress {
   [key: string]: number;
-}
-
-interface fileMetadata {
-  name: string;
-  extension: string;
-  size_kb: number;
-  created_at: string;
-  modified_at: string;
 }
 
 export default function ChatbotTrainingPage() {
@@ -93,55 +87,7 @@ export default function ChatbotTrainingPage() {
     null
   );
   const [url, setUrl] = useState("");
-  const [trainingData, setTrainingData] = useState<
-    {
-      // id: number;
-      name: string;
-      type: string;
-      size?: string;
-      source: string;
-      dateAdded: string;
-    }[]
-  >([
-    // {
-    //   name: "Product Documentation.pdf",
-    //   type: "PDF",
-    //   size: "2.4 MB",
-    //   source: "File Upload",
-    //   dateAdded: "2024-03-01",
-    // },
-    // {
-    //   id: 2,
-    //   name: "FAQ List.docx",
-    //   type: "DOCX",
-    //   size: "1.2 MB",
-    //   source: "File Upload",
-    //   dateAdded: "2024-03-02",
-    // },
-    // {
-    //   id: 3,
-    //   name: "https://example.com/blog",
-    //   type: "Website",
-    //   source: "URL",
-    //   dateAdded: "2024-03-03",
-    // },
-    // {
-    //   id: 4,
-    //   name: "Sales Data.xlsx",
-    //   type: "XLSX",
-    //   size: "3.5 MB",
-    //   source: "File Upload",
-    //   dateAdded: "2024-03-04",
-    // },
-    // {
-    //   id: 5,
-    //   name: "Company Presentation.pptx",
-    //   type: "PPTX",
-    //   size: "5.1 MB",
-    //   source: "File Upload",
-    //   dateAdded: "2024-03-05",
-    // },
-  ]);
+  const [trainingData, setTrainingData] = useState<fileMetaType[]>([]);
 
   useEffect(() => {
     // In a real app, fetch the chatbot details
@@ -153,6 +99,7 @@ export default function ChatbotTrainingPage() {
 
   const [uploading, setUploading] = useState<boolean>(false);
   const [progress, setProgress] = useState<Progress>({});
+
   useEffect(() => {
     if (!chatbot) return;
     const script = document.createElement("script");
@@ -160,7 +107,7 @@ export default function ChatbotTrainingPage() {
     script.async = true;
     document.body.appendChild(script);
     script.onload = () => {
-      const r = new Resumable({
+      const r:any = new Resumable({
         target: "http://127.0.0.1:8000/api/v1/1/filemanager/uploads",
         chunkSize: 1 * 1024 * 1024,
         simultaneousUploads: 3,
@@ -201,7 +148,6 @@ export default function ChatbotTrainingPage() {
         const fileList = await getFileList();
         console.log(fileList);  // Log the file list if you want to check its value
         setTrainingData(fileList)
-  
       } catch (err) {
         console.error('Error fetching file list:', err);
       }
@@ -269,8 +215,8 @@ export default function ChatbotTrainingPage() {
     setUrl("");
   };
 
-  const handleDelete = (id: number) => {
-    setTrainingData(trainingData.filter((item) => item.id !== id));
+  const handleDelete = (name: string) => {
+    setTrainingData(trainingData.filter((item) => item.name !== name));
     // toast({
     //   title: "Item removed",
     //   description: "The training data has been removed.",
@@ -292,15 +238,17 @@ export default function ChatbotTrainingPage() {
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case "PDF":
+      case "pdf":
         return <FileText className="h-4 w-4 text-red-500" />;
-      case "DOCX":
+      case "docx":
         return <File className="h-4 w-4 text-blue-500" />;
-      case "XLSX":
+      case "xlsx":
         return <FileSpreadsheet className="h-4 w-4 text-green-500" />;
-      case "PPTX":
+      case "pptx":
         return <FilePresentation className="h-4 w-4 text-orange-500" />;
-      case "Website":
+      case "ppt":
+        return <FilePresentation className="h-4 w-4 text-orange-500" />;
+      case "website":
         return <Globe className="h-4 w-4 text-purple-500" />;
       default:
         return <File className="h-4 w-4" />;
@@ -312,8 +260,6 @@ export default function ChatbotTrainingPage() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           {" "}
@@ -536,20 +482,20 @@ export default function ChatbotTrainingPage() {
                                   </TableCell>
                                 </TableRow>
                               ) : (
-                                trainingData.map((item) => (
-                                  <TableRow key={item.id}>
+                                trainingData.map((item, i) => (
+                                  <TableRow key={item.name}>
                                     <TableCell>
                                       <div className="flex items-center gap-2">
-                                        {getFileIcon(item.type)}
+                                        {getFileIcon(item.extension)}
                                         <span className="truncate max-w-[250px]">
                                           {item.name}
                                         </span>
                                       </div>
                                     </TableCell>
-                                    <TableCell>{item.type}</TableCell>
-                                    <TableCell>{item.size || "N/A"}</TableCell>
-                                    <TableCell>{item.source}</TableCell>
-                                    <TableCell>{item.dateAdded}</TableCell>
+                                    <TableCell>{item.extension}</TableCell>
+                                    <TableCell>{item.size_kb && convertSize(item.size_kb) || "N/A"}</TableCell>
+                                    <TableCell>{"File Upload"}</TableCell>
+                                    <TableCell>{item.created_at}</TableCell>
                                     <TableCell>
                                       <AlertDialog>
                                         <AlertDialogTrigger asChild>
@@ -578,7 +524,7 @@ export default function ChatbotTrainingPage() {
                                             </AlertDialogCancel>
                                             <AlertDialogAction
                                               onClick={() =>
-                                                handleDelete(item.id)
+                                                handleDelete(item.name)
                                               }
                                               className="bg-red-500 hover:bg-red-700"
                                             >
@@ -633,6 +579,5 @@ export default function ChatbotTrainingPage() {
           </div>
         </div>
       </SidebarInset>
-    </SidebarProvider>
   );
 }

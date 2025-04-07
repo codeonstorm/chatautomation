@@ -37,41 +37,43 @@ from enum import Enum
 #   archived = "archived"
 
 
-
 # Enums
 class StatusEnum(str, Enum):
-  enabled = "enabled"
-  disabled = "disabled"
-  deleted = "deleted"
+    enabled = "enabled"
+    disabled = "disabled"
+    deleted = "deleted"
+
 
 class UserRoleEnum(str, Enum):
-  superadmin = "superadmin"
-  admin = "admin"
-  user = "user"
+    superadmin = "superadmin"
+    admin = "admin"
+    user = "user"
+
 
 class VerifiedEnum(str, Enum):
-  true = "true"
-  false = "false"
+    true = "true"
+    false = "false"
+
 
 class FeedbackEnum(str, Enum):
-  positive = "positive"
-  neutral = "neutral"
-  negative = "negative"
+    positive = "positive"
+    neutral = "neutral"
+    negative = "negative"
+
 
 class ChatbotTypeEnum(str, Enum):
-  sales = "sales"
-  support = "support"
-  onboarding = "onboarding"
-  feedback = "feedback"
-  booking = "booking"
-  ecommerce = "e-commerce"
-  internal_assistant = "internal_assistant"
-  knowledge_base = "knowledge_base"
-  marketing = "marketing"
-  event = "event"
-  education = "education"
-  healthcare = "healthcare"
-  entertainment = "entertainment"
-  news = "news"
-  custom = "custom"
-
+    sales = "sales"
+    support = "support"
+    onboarding = "onboarding"
+    feedback = "feedback"
+    booking = "booking"
+    ecommerce = "e-commerce"
+    internal_assistant = "internal_assistant"
+    knowledge_base = "knowledge_base"
+    marketing = "marketing"
+    event = "event"
+    education = "education"
+    healthcare = "healthcare"
+    entertainment = "entertainment"
+    news = "news"
+    custom = "custom"

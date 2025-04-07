@@ -83,3 +83,7 @@ openssl rand -hex 32
 # alembic history
 # alembic stamp head
 
+
+
+# pip install black format code
+black .

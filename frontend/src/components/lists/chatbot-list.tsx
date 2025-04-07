@@ -68,7 +68,7 @@
 // import { Input } from "@/components/ui/input";
 // import { Textarea } from "@/components/ui/textarea";
 // import { Switch } from "@/components/ui/switch";
-// import { useForm } from "react-hook-form";
+// import { useForm } from "react-hook-forfm";
 // import { zodResolver } from "@hookform/resolvers/zod";
 // import * as z from "zod";
 // import {
@@ -278,6 +278,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 // Form schema for chatbot creation/editing
 const chatbotFormSchema = z.object({
@@ -500,7 +501,7 @@ export function ChatbotList() {
         <TableBody>
           {chatbots.map((bot) => (
             <TableRow key={bot.id}>
-              <TableCell>{bot.name}</TableCell>
+              <TableCell><Link href={`/dashboard/chatbots/${bot.id}`}>{bot.name}</Link></TableCell>
               <TableCell>
                 <span
                   className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${

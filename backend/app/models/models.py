@@ -6,7 +6,6 @@
 # # Models
 
 
-
 # # class Service(SQLModel, table=True):
 # #   __tablename__ = "services"
 # #   id: Optional[int] = Field(default=None, primary_key=True)
@@ -14,12 +13,6 @@
 # #   status: StatusEnum
 # #   created_at: datetime = Field(default_factory=datetime.utcnow)
 # #   expired_at: Optional[datetime] = None
-
-
-
-
-
-
 
 
 # # class Profile(SQLModel, table=True):

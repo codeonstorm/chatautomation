@@ -6,6 +6,7 @@ from docling.datamodel.base_models import InputFormat
 from docling.document_converter import DocumentConverter
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_docling.loader import ExportType
+
 # from bs4 import BeautifulSoup
 from langchain_community.document_loaders import UnstructuredURLLoader
 from langchain_core.documents import Document
@@ -18,15 +19,15 @@ from uuid import uuid4
 COLLECTION_NAME = "docling"
 EXPORT_TYPE = ExportType.MARKDOWN
 doc_converter = DocumentConverter(
-  allowed_formats=[
-    InputFormat.HTML, 
-    # InputFormat.CSV, 
-    # InputFormat.DOCX, 
-    # InputFormat.PDF, 
-    # InputFormat.MD,
-    # InputFormat.PPTX, 
-    # InputFormat.XLSX
-  ]
+    allowed_formats=[
+        InputFormat.HTML,
+        # InputFormat.CSV,
+        # InputFormat.DOCX,
+        # InputFormat.PDF,
+        # InputFormat.MD,
+        # InputFormat.PPTX,
+        # InputFormat.XLSX
+    ]
 )
 
 # from langchain_community.document_loaders import BSHTMLLoader
@@ -35,7 +36,9 @@ doc_converter = DocumentConverter(
 # print(data)
 
 
-urls = ["https://www.5centscdn.net/blog/how-to-set-up-cdn-on-ecommerce-website/?pk_vid=6472d4f145978a631740846755a70b22"]
+urls = [
+    "https://www.5centscdn.net/blog/how-to-set-up-cdn-on-ecommerce-website/?pk_vid=6472d4f145978a631740846755a70b22"
+]
 loader = UnstructuredURLLoader(urls=urls)
 data = loader.load()
 
@@ -47,51 +50,52 @@ data = loader.load()
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 text_splitter = RecursiveCharacterTextSplitter(
-  chunk_size=500, chunk_overlap=100, separators=["\n\n", ".", " "]
+    chunk_size=500, chunk_overlap=100, separators=["\n\n", ".", " "]
 )
 
 chunked_docs = []
 for doc in data:
-  chunks = text_splitter.split_text(doc.page_content)
-  for chunk in chunks:
-    chunked_docs.append({
-      "vector": embedding_model.encode(chunk),
-      "payload": {
-        "page_content": chunk,
-        "metadata": doc.metadata
-      }
-    })
+    chunks = text_splitter.split_text(doc.page_content)
+    for chunk in chunks:
+        chunked_docs.append(
+            {
+                "vector": embedding_model.encode(chunk),
+                "payload": {"page_content": chunk, "metadata": doc.metadata},
+            }
+        )
 
 # Generate embeddings for all chunks
 # chunk_embeddings = [embedding_model.encode(chunk["page_content"]) for chunk in chunked_docs]
 
 client = QdrantClient(
-  url=os.getenv("QDRANT_CLIENT_URL"),
-  port=os.getenv("QDRANT_CLIENT_PORT"),
-  api_key=os.getenv("QDRANT_CLIENT_API_KEY"),
-  prefer_grpc=True
+    url=os.getenv("QDRANT_CLIENT_URL"),
+    port=os.getenv("QDRANT_CLIENT_PORT"),
+    api_key=os.getenv("QDRANT_CLIENT_API_KEY"),
+    prefer_grpc=True,
 )
 
 if not client.collection_exists(COLLECTION_NAME):
-  client.create_collection(
-    collection_name=COLLECTION_NAME,
-    # vectors_config={ models.VectorParams(size=384, distance=models.Distance.COSINE)}
-    vectors_config=models.VectorParams(size=384, distance=models.Distance.COSINE)  # Adjust size if needed
-  )
+    client.create_collection(
+        collection_name=COLLECTION_NAME,
+        # vectors_config={ models.VectorParams(size=384, distance=models.Distance.COSINE)}
+        vectors_config=models.VectorParams(
+            size=384, distance=models.Distance.COSINE
+        ),  # Adjust size if needed
+    )
+
 
 def upsert(client, collection_name: str, data) -> None:
-  # Upload the vectors to the collection along with the original text as payload
-  client.upsert(
-    collection_name=collection_name,
-    points=[
-      models.PointStruct(
-        id=str(uuid4()),
-        vector=row["vector"],
-        payload=row["payload"]
-      )
-      for row in data
-    ]
-  )
+    # Upload the vectors to the collection along with the original text as payload
+    client.upsert(
+        collection_name=collection_name,
+        points=[
+            models.PointStruct(
+                id=str(uuid4()), vector=row["vector"], payload=row["payload"]
+            )
+            for row in data
+        ],
+    )
+
 
 # upsert(
 #   client,
@@ -113,17 +117,17 @@ def upsert(client, collection_name: str, data) -> None:
 # )
 
 # search_results = client.search(
-#   collection_name=COLLECTION_NAME, 
+#   collection_name=COLLECTION_NAME,
 #   query_vector=embedding_model.encode("How ecomerece help us"),
 #   limit=10,
 #   with_payload=True
 # )
 
 test = client.query_points(
-  collection_name=COLLECTION_NAME, 
-  query=embedding_model.encode("How ecomerece help us"),
-  limit=10,
-  with_payload=True
+    collection_name=COLLECTION_NAME,
+    query=embedding_model.encode("How ecomerece help us"),
+    limit=10,
+    with_payload=True,
 )
 
 print(test)
@@ -133,17 +137,6 @@ print(test)
 #     print(f"=== {i} ===")
 #     print(search_results.document)
 #     print()
-
-
-
-
-
-
-
-
-
-
-
 
 
 # client.set_model("sentence-transformers/all-MiniLM-L6-v2")
@@ -157,7 +150,7 @@ print(test)
 # html_content = result.document.export_to_markdown()  # Assuming it's returning HTML-like content
 # soup = BeautifulSoup(html_content, "html.parser")
 # clean_text = soup.get_text()
- 
+
 # if EXPORT_TYPE == ExportType.DOC_CHUNKS:
 #   splits = docs
 # elif EXPORT_TYPE == ExportType.MARKDOWN:
@@ -175,7 +168,7 @@ print(test)
 #     splits.extend(splitter.split_text(text))
 # else:
 #   raise ValueError(f"Unexpected export type: {EXPORT_TYPE}")
- 
+
 # documents, metadatas = [], []
 # for chunk in HybridChunker().chunk(result.document):
 #   documents.append(chunk.text)

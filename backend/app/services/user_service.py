@@ -7,6 +7,7 @@ from app.schemas.user import UserCreate, UserUpdate
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 class UserService:
     def get_user(self, db: Session, user_id: int) -> Optional[User]:
         return db.query(User).filter(User.id == user_id).first()
@@ -23,7 +24,7 @@ class UserService:
             email=user.email,
             hashed_password=hashed_password,
             full_name=user.full_name,
-            is_active=user.is_active
+            is_active=user.is_active,
         )
         db.add(db_user)
         db.commit()
@@ -33,13 +34,15 @@ class UserService:
     def update_user(self, db: Session, user_id: int, user: UserUpdate) -> User:
         db_user = self.get_user(db, user_id)
         update_data = user.dict(exclude_unset=True)
-        
+
         if "password" in update_data and update_data["password"]:
-            update_data["hashed_password"] = pwd_context.hash(update_data.pop("password"))
-        
+            update_data["hashed_password"] = pwd_context.hash(
+                update_data.pop("password")
+            )
+
         for key, value in update_data.items():
             setattr(db_user, key, value)
-            
+
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -49,4 +52,3 @@ class UserService:
         db_user = self.get_user(db, user_id)
         db.delete(db_user)
         db.commit()
-

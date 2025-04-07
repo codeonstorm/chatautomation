@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+
 os.environ["USER_AGENT"] = "MyCustomUserAgent"
 # Load environment variables
 load_dotenv()
@@ -58,6 +59,7 @@ async def get():
 #         data = await websocket.receive_text()
 #         res = chatbot.run(data)
 #         await websocket.send_text(f"Message text was: {res}")
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

@@ -19,39 +19,42 @@ from app.schemas.enums import StatusEnum
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("", response_model=ResponseSchema)
-def create_user(
+
+@router.get("/user")
+def get_user(
     *,
-    db: Session = Depends(get_session),
-    user_in: UserCreate,
-    # current_user: User = Depends(get_current_active_superuser)
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
 ) -> Any:
-    """
-    Create new user
-    """
-    user = db.exec(select(User).where(User.email == user_in.email)).first()
-    if user:
+    if not current_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The user with this email already exists in the system"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
         )
     
-    user_data = user_in.model_dump()
-    hashed_password = get_password_hash(user_data.pop("password"))
-    user = User(password=hashed_password, **user_data)
+    services: Service = session.exec(select(Service).where(Service.user_id == current_user.id)).all()
 
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    service = Service(user_id=user.id, plan_id=None)
+    result = []
+    for i, service in enumerate(services):
+        # Assuming service has a plan_id column that references Plan.id
+        result.append({
+            "id": service.id,
+            "plan_id": service.plan_id,
+            "status": service.status,
+            "created_at": service.created_at,
+            "expired_at": service.expired_at,
+            "plan": session.exec(select(Plan).where(Plan.id == service.plan_id)).first()
+        }) 
     
-    db.add(service)
-    db.commit()
-    db.refresh(service)
-
-    return ResponseSchema(
-        success=True,
-        message="User created success"
-    )
- 
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "name": current_user.name,
+        "role": current_user.role,
+        "status": current_user.status,
+        "last_login": current_user.last_login,
+        "verified": current_user.verified,
+        "created_at": current_user.created_at,
+        "services": result
+        # "plan": plan
+    }

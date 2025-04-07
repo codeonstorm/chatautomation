@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()  
+
+load_dotenv()
 
 from langchain_ollama import OllamaEmbeddings
 
@@ -24,16 +25,12 @@ qdrantClient.create_collection(
 )
 
 vector_store = QdrantVectorStore(
-    client=qdrantClient,
-    collection_name="demo_collection",
-    embedding=embeddings
+    client=qdrantClient, collection_name="demo_collection", embedding=embeddings
 )
 
 # Using an existing collection
 qdrantClient = QdrantVectorStore.from_existing_collection(
-    embedding=embeddings,
-    collection_name="demo_collection",
-    url=QdrantClientUrl
+    embedding=embeddings, collection_name="demo_collection", url=QdrantClientUrl
 )
 
 
@@ -60,7 +57,6 @@ uuids = [str(uuid4()) for _ in range(len(documents))]
 vector_store.add_documents(documents=documents, ids=uuids)
 
 
-
 # Delete items from vector store
 # vector_store.delete(ids=[uuids[-1]])
 
@@ -77,7 +73,6 @@ results = vector_store.similarity_search(
 )
 for res in results:
     print(f"* {res.page_content} [{res.metadata}]")
-
 
 
 # url = "<---qdrant cloud cluster url here --->"

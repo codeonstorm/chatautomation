@@ -39,6 +39,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
+import { useAppDispatch } from "@/redux/store/hooks"
+import { Domain } from "@/types/domain"
+import { useSelector } from 'react-redux';
+import { RootState } from "@/redux/store/store";
 
 // This is sample data.
 const data = {
@@ -142,15 +146,12 @@ const data = {
       url: "#",
       icon: PieChart,
     },
-  ],
-  domains: [
-    { name: "example.com", status: "Active" },
-    { name: "mysite.org", status: "Pending" },
-    { name: "testdomain.net", status: "Active" },
-  ],
+  ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const domains:Domain[] = useSelector((state: RootState) => state.domains);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -165,25 +166,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <AddDomainDialog/>
             </SidebarMenuItem>
-            {data.domains.map((domain) => (
-              <SidebarMenuItem key={domain.name}>
-                <SidebarMenuButton className={domain.status === "Active" ? "text-custom-gold" : ""}>
+            {domains.slice(0, 4).map((domain) => (
+              <SidebarMenuItem key={domain.uuid}>
+                <SidebarMenuButton className={domain.status === "enabled" ? "text-custom-gold" : ""}>
                   <Globe className="h-4 w-4 mr-2" />
-                  <span>{domain.name}</span>
+                  <span>{domain.domain}</span>
                   <span
-                    className={`ml-auto text-xs ${domain.status === "Active" ? "text-green-500" : "text-yellow-500"}`}
+                    className={`ml-auto text-xs ${domain.status === "enabled" ? "text-green-500" : "text-yellow-500"}`}
                   >
                     {domain.status}
                   </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            {
+            domains.length > 2 && 
             <SidebarMenuItem>
-              <SidebarMenuButton className="text-sidebar-foreground/70">
-                <MoreHorizontal className="text-sidebar-foreground/70" />
-                <span>More</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <SidebarMenuButton className="text-sidebar-foreground/70">
+              <MoreHorizontal className="text-sidebar-foreground/70" />
+              <span>More</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+            }
+
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

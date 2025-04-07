@@ -13,16 +13,18 @@ from app.schemas.plan import PlanRead
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 
+
 @router.get("", response_model=list[PlanRead])
 def get_plans(
-  *,
-  db: Session = Depends(get_session),
+    *,
+    db: Session = Depends(get_session),
 ) -> List[PlanRead]:
-  """
-  Get Plans
-  """
-  plans = db.exec(select(Plan)).all()
-  if not plans:
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No plans found.")
-  return plans
- 
+    """
+    Get Plans
+    """
+    plans = db.exec(select(Plan)).all()
+    if not plans:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="No plans found."
+        )
+    return plans

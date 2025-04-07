@@ -15,21 +15,20 @@ from app.core.database import create_db_and_tables
 
 load_dotenv()
 app = FastAPI(
-  title=settings.PROJECT_NAME,
-  description=settings.PROJECT_DESCRIPTION,
-  version=settings.VERSION,
-  openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    title=settings.PROJECT_NAME,
+    description=settings.PROJECT_DESCRIPTION,
+    version=settings.VERSION,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
 # Set up CORS
 app.add_middleware(
-  CORSMiddleware,
-  allow_origins=settings.CORS_ORIGINS,
-  allow_credentials=True,
-  allow_methods=["*"],
-  allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-
 
 
 # @app.exception_handler(HTTPException)
@@ -83,5 +82,4 @@ app.include_router(chat_router)
 #   create_db_and_tables()
 
 if __name__ == "__main__":
-  uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

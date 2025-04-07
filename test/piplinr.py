@@ -8,4 +8,3 @@ docs = loader.load()
 
 for d in docs[:3]:
     print(f"- {d.page_content=}")
-

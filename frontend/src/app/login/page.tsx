@@ -58,14 +58,6 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="type">type</Label>
-              <Input
-                id="type"
-                type="grant_type"
-                required
-              />
-            </div>
-            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
                 <Link href="/forgot-password" className="text-sm text-primary hover:underline">

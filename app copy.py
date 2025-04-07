@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+
 os.environ["USER_AGENT"] = "MyCustomUserAgent"
 import bs4
 from langchain import hub
@@ -29,6 +30,7 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
+
 load_dotenv()
 
 llm = ChatOllama(model="llama3.2", temperature=1)
@@ -50,10 +52,14 @@ all_splits = text_splitter.split_documents(docs)
 
 # embeddings = OllamaEmbeddings(model="llama3.2")
 
-client = QdrantClient(url=os.getenv("QDRANT_CLIENT_URL"), api_key=os.getenv("QDRANT_CLIENT_API_KEY"))
+client = QdrantClient(
+    url=os.getenv("QDRANT_CLIENT_URL"), api_key=os.getenv("QDRANT_CLIENT_API_KEY")
+)
 client.create_collection(
     collection_name="ertrt",
-    vectors_config=VectorParams(size=128, distance=Distance.COSINE)  # Adjust size & distance as needed
+    vectors_config=VectorParams(
+        size=128, distance=Distance.COSINE
+    ),  # Adjust size & distance as needed
 )
 # _ = vector_store.add_documents(documents=all_splits)
 
@@ -92,8 +98,6 @@ client.create_collection(
 # print(response["answer"])
 
 
-
-
 # #  new
 # @tool(response_format="content_and_artifact")
 # def retrieve(query: str):
@@ -110,7 +114,7 @@ client.create_collection(
 #         for doc in retrieved_docs
 #     )
 #     return serialized, retrieved_docs
-    
+
 # graph_builder = StateGraph(MessagesState)
 
 
@@ -122,20 +126,20 @@ client.create_collection(
 #     # MessagesState appends messages to state instead of overwriting
 #     return {"messages": [response]}
 
- 
+
 # # Step 2: Execute the retrieval.
 # tools = ToolNode([retrieve])
 
 # def custom_tools_condition(state: MessagesState):
 #     """Check if the AI response contains a tool call."""
 #     last_message = state["messages"][-1]
-    
+
 #     print("Checking tools_condition... Last Message:", last_message)  # Debugging
 
 #     # if last_message.type == "ai" and last_message.tool_calls:
 #     print("Condition met: Redirecting to 'tools'")  # Debugging
 #     return "tools"
-    
+
 #     # print("Condition NOT met: Ending")  # Debugging
 #     # return END
 
@@ -211,7 +215,6 @@ client.create_collection(
 #     stream_mode="values",
 # ):
 #     step["messages"][-1].pretty_print()
-
 
 
 # input_message = "What is Task Decomposition?"

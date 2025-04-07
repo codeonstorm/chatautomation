@@ -1,4 +1,4 @@
-import type { User } from "@/types/user"
+import type {fileMetaType} from "@/types/file"
 
 const API_URL = "http://127.0.0.1:8000/api/v1"
 
@@ -12,16 +12,15 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
  
 // Get current user
-export async function getFileList(): Promise<User> {
+export async function getFileList(): Promise<fileMetaType[]> {
   const accessToken = localStorage.getItem("accessToken")
-
   const response = await fetch(`${API_URL}/1/filemanager/files`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   })
 
-  return handleResponse<User>(response)
+  return handleResponse<fileMetaType[]>(response)
 }
 
  
