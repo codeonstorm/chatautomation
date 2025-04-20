@@ -73,7 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Set new tokens as cookies
       const response = NextResponse.next();
-      console.log("**********");
       
       response.cookies.set("accessToken", access_token, {
         httpOnly: true, // Prevent JavaScript access
@@ -88,8 +87,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         maxAge: 60 * 60 * 24, // 1 day expiration
         // secure: false, // Only set in HTTPS in production
       });
-      console.log("****ug******");
-
 
       const userData = await getCurrentUser()
       setUser(userData)

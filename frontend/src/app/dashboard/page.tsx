@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DarkModeToggle } from "@/components/darkmodetoogle";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MessageSquare,
@@ -37,35 +36,25 @@ import { Domain } from "@/types/domain";
 import { useAppDispatch } from "@/redux/store/hooks";
 import { addDomains } from "@/redux/store/features/domain/domain";
 
-// Mock data for the chart
-const chartData = [
-  { name: "Jan", value: 400 },
-  { name: "Feb", value: 300 },
-  { name: "Mar", value: 500 },
-  { name: "Apr", value: 450 },
-  { name: "May", value: 470 },
-  { name: "Jun", value: 600 },
-];
-
 export default function Page() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.push("/login");
-      }
+  // useEffect(() => {
+  //   if (!isLoading) {
+  //     if (!isAuthenticated) {
+  //       router.push("/login");
+  //     }
 
-      const domains = async () => {
-        const domains: Domain[] = await getDomains();
-        dispatch(addDomains(domains));
-      };
+  //     const domains = async () => {
+  //       const domains: Domain[] = await getDomains();
+  //       dispatch(addDomains(domains));
+  //     };
 
-      domains();
-    }
-  }, [isAuthenticated, isLoading, router]);
+  //     domains();
+  //   }
+  // }, [isAuthenticated, isLoading, router]);
 
   return (
     <SidebarInset>

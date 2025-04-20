@@ -76,6 +76,34 @@ export default function ChatbotPreviewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
         {/* Controls sidebar */}
         <div className="space-y-6">
+        <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Chatbot Information</h2>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Name</Label>
+                  <p className="font-medium">{chatbot.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-muted-foreground">Primary Color</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: chatbot.primary_color }} />
+                    <span>{chatbot.primary_color}</span>
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={() => window.open(`/preview/${chatbot.id}`, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Open in New Tab
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           <Card>
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Preview Settings</h2>
@@ -172,35 +200,6 @@ export default function ChatbotPreviewPage() {
                         Fullscreen Preview
                       </>
                     )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Chatbot Information</h2>
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm text-muted-foreground">Name</Label>
-                  <p className="font-medium">{chatbot.name}</p>
-                </div>
-                <div>
-                  <Label className="text-sm text-muted-foreground">Primary Color</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="w-6 h-6 rounded-full border" style={{ backgroundColor: chatbot.primary_color }} />
-                    <span>{chatbot.primary_color}</span>
-                  </div>
-                </div>
-                <div className="pt-2">
-                  <Button
-                    variant="outline"
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={() => window.open(`/preview/${chatbot.id}`, "_blank")}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Open in New Tab
                   </Button>
                 </div>
               </div>

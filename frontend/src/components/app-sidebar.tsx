@@ -44,6 +44,12 @@ import { Domain } from "@/types/domain"
 import { useSelector } from 'react-redux';
 import { RootState } from "@/redux/store/store";
 
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+import { getDomains } from "@/services/domain";
+import { addDomains } from "@/redux/store/features/domain/domain";
+import { useEffect, useState } from "react";
+
 // This is sample data.
 const data = {
   user: {
@@ -151,6 +157,26 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const domains:Domain[] = useSelector((state: RootState) => state.domains);
+
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+
+    useEffect(() => {
+      if (!isLoading) {
+        if (!isAuthenticated) {
+          router.push("/login");
+        }
+  
+        const domains = async () => {
+          const domains: Domain[] = await getDomains();
+          dispatch(addDomains(domains));
+        };
+  
+        domains();
+      }
+    }, [isAuthenticated, isLoading, router]);
+
 
   return (
     <Sidebar collapsible="icon" {...props}>

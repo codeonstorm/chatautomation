@@ -19,24 +19,93 @@ from app.core.config import settings
 from app.core.database import get_session
 from app.models.user import User
 from app.schemas.token import TokenPayload
-from uuid import UUID
 
 from ollama import ChatResponse, chat, ResponseError, Client
 import time
 from app.classes.vector_db import VectorDB
 from app.classes.document_embedding import DocumentEmbedder
-from app.classes.base_tool import BaseTool
-from app.classes.template import Template
-from app.classes.greeting import GreetingResponder
 
-chat_router = APIRouter(prefix="/chat/{chatbot_uuid}", tags=["chat"])
- 
+chat_router = APIRouter()
+
+def add_two_numbers(a: int, b: int) -> int:
+    """
+    Add two numbers
+
+    Args:
+      a (int): The first number
+      b (int): The second number
+
+    Returns:
+      int: The sum of the two numbers
+    """
+
+    # The cast is necessary as returned tool call arguments don't always conform exactly to schema
+    # E.g. this would prevent "what is 30 + 12" to produce '3012' instead of 42
+    return int(a) + int(b)
+
+
+def subtract_two_numbers(a: int, b: int) -> int:
+    """
+    Subtract two numbers
+    """
+
+    # The cast is necessary as returned tool call arguments don't always conform exactly to schema
+    return int(a) - int(b)
+
+
+def greeting(query: str) -> int:
+    """
+    tool for greeting query **only. example: Hi, Hello, Hey, Thanks, bye, OK, Good Morning, Good Evning.
+      Args:
+          query (str): The query
+    Returns:
+      (str): The result of the query
+    """
+    return query
+
+
+def retriver(user_query: str) -> str:
+    """
+    tool to get updated information for the user query.
+    Args:
+      user_query (str): The query string to search for relevant documents.
+    Returns:
+      (str): A list of dictionaries containing retrieved documents.
+    """
+    try:
+        # qdrant_manager = QdrantManager()
+        # vector_store = qdrant_manager.get_vector_store("chatbot")
+        # retrieved_docs = vector_store.similarity_search(query, k=2)
+        # return retrieved_docs
+        embedder = DocumentEmbedder()
+        query_embedding = embedder.embedding_model.encode([user_query])[0]
+        vectorDB = VectorDB('1-2b38345c-dda4-476a-bbd9-8724ea4f2851')
+        results = vectorDB.search(query_embedding, top_k=5)
+
+        # Extract matched texts and optional scores
+        hits = [{"text": r.payload.get("text", ""), "score": r.score} for r in results]
+
+        print(hits)
+        # return hits
+
+
+
+        # vectorDB.
+        
+    except Exception as e:
+        print("==========")
+        # return "At 5centsCDN, we are dedicated to delivering premium CDN services at competitive prices, starting from just 5 cents per GB. Our flexible approach means clients can engage with us without the need for long-term commitments or contracts, although we do have nominal setup fees for trial periods. We are proud to have expanded our client base to over 5000 diverse customers, including entities in OTT, IPTV, advertising, gaming, government and non-profit sectors, as well as major television channels.Our robust network features over 70 strategically placed Points of Presence (PoPs) around the globe, ensuring that our customers can easily connect to our standalone network. This expansive network setup minimizes latency, often directly within the ISP networks of end-users. By managing and operating our own network infrastructure, 5centsCDN guarantees a fast, secure, and cost-effective content delivery solution, effectively and reliably connecting your content to audiences worldwide"
+        return f"Opps! Error during retrieving data {e}"
+
+
 available_functions = {
     # 'greeting': greeting,
-    "add_two_numbers": BaseTool.add_two_numbers,
-    "subtract_two_numbers": BaseTool.subtract_two_numbers,
-    "retriever": BaseTool.retriever,
+    "add_two_numbers": add_two_numbers,
+    "subtract_two_numbers": subtract_two_numbers,
+    "retriver": retriver,
 }
+
+
 
 
 # HTML template for the chat interface
@@ -185,9 +254,23 @@ html = """
     </style>
 </head>
 <body>
-    <div id="chatContainer" class="chat-container">
+    <div id="authContainer" class="auth-container">
+        <h2>Login to Chat</h2>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Enter your email">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password">
+        </div>
+        <button id="loginButton">Login</button>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <div id="chatContainer" class="chat-container" style="display: none;">
         <div class="header">
-            BuyBot
+            FastAPI Chat
         </div>
         <div id="messages" class="messages">
             <div class="message bot">
@@ -205,16 +288,49 @@ html = """
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         let accessToken = '';
         let ws = null;
 
-        connectWebSocket();
+        document.getElementById('loginButton').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                document.getElementById('errorMessage').textContent = 'Please enter both email and password';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'username': email,
+                        'password': password,
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    accessToken = data.access_token;
+                    document.getElementById('authContainer').style.display = 'none';
+                    document.getElementById('chatContainer').style.display = 'flex';
+                    connectWebSocket();
+                } else {
+                    document.getElementById('errorMessage').textContent = data.detail || 'Login failed';
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
+                console.error('Login error:', error);
+            }
+        });
 
         function connectWebSocket() {
-            // ws = new WebSocket(`ws://${window.location.host}/chat/ws?token=${accessToken}`);
-            ws = new WebSocket(`ws://${window.location.host}/chat/${window.location.href.split('/')[4]}/ws?token=${accessToken}`);
+            ws = new WebSocket(`ws://${window.location.host}/chat/ws?token=${accessToken}`);
             
             ws.onopen = function(event) {
                 console.log('Connection opened');
@@ -222,7 +338,7 @@ html = """
             
             ws.onmessage = function(event) {
                 const data = JSON.parse(event.data);
-                addMessage(marked.parse(data.message), 'bot');
+                addMessage(data.message, 'bot');
                 document.getElementById('typingIndicator').style.display = 'none';
             };
             
@@ -262,7 +378,7 @@ html = """
             const messagesContainer = document.getElementById('messages');
             const messageElement = document.createElement('div');
             messageElement.classList.add('message', sender);
-            messageElement.innerHTML = message;
+            messageElement.textContent = message;
             messagesContainer.appendChild(messageElement);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
@@ -289,62 +405,87 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@chat_router.get("", response_class=HTMLResponse)
-async def get_chat(
-    chatbot_uuid: UUID
-):
+@chat_router.get("/chat", response_class=HTMLResponse)
+async def get_chat():
+    """
+    Get the chat UI
+    """
     return HTMLResponse(content=html)
 
 
-@chat_router.websocket("/ws")
-async def websocket_endpoint(
-    websocket: WebSocket, 
-    chatbot_uuid: UUID,
-    token: str = None
-):
+@chat_router.websocket("/chat/ws")
+async def websocket_endpoint(websocket: WebSocket, token: str = None):
     """
     WebSocket endpoint for chat
     """
+    if not token:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    try:
+        # Verify token (simplified for example)
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+
+        if token_data.type != "access":
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+    except (JWTError, ValidationError):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await manager.connect(websocket)
     try:
         while True:
             data = await websocket.receive_json()
             user_message_str = data.get("message", "")
-
             if not user_message_str:
                 continue
-
-            if len(user_message_str) < 2:
-                await manager.send_personal_message("Hello! How can I help you today?", websocket)
-                continue
-
-
-            responder = GreetingResponder()
-            response = responder.check_greeting(user_message_str)
-
-            if response:
-                await manager.send_personal_message(response, websocket)
-                continue
-            
             start_time = time.time()
+            # User message  
+            embedder = DocumentEmbedder()
+            query_embedding = embedder.embedding_model.encode([user_message_str])[0]
+            vectorDB = VectorDB('1-2b38345c-dda4-476a-bbd9-8724ea4f2851')
+            results = vectorDB.search(query_embedding, top_k=5)
+
+            # Extract matched texts and optional scores
+            hits = [{"text": r.payload.get("text", ""), "score": r.score} for r in results]
+            tool_message = [{
+                    "role": "tool",
+                    "name": 'retriver',
+                    "content": str(hits),
+                }]
+
+            print(hits)
+
+
+
+            system_prompt = {
+                "role": "system",
+                "content": "You are an 5centsCDN AI chatbot always use provided tools and formats responses in Markdown with maximum 180 words",
+            }  #
+            # system_prompt_tool = {"role": "system", "content": "You are an AI assistant. If multiple tools are available, you MUST select only the most relevant ONE. Do NOT select multiple tools at once."} #
             user_message = {"role": "user", "content": user_message_str}
-            print("\n\Question:", user_message["content"])
+            # toos_msg = {'role': 'tool', 'content': "At 5centsCDN, we are dedicated to delivering premium CDN services at competitive prices, starting from just 5 cents per GB. Our flexible approach means clients can engage with us without the need for long-term commitments or contracts, although we do have nominal setup fees for trial periods. We are proud to have expanded our client base to over 5000 diverse customers, including entities in OTT, IPTV, advertising, gaming, government and non-profit sectors, as well as major television channels.Our robust network features over 70 strategically placed Points of Presence (PoPs) around the globe, ensuring that our customers can easily connect to our standalone network. This expansive network setup minimizes latency, often directly within the ISP networks of end-users. By managing and operating our own network infrastructure, 5centsCDN guarantees a fast, secure, and cost-effective content delivery solution, effectively and reliably connecting your content to audiences worldwide"}
+            print("\n\nPrompt:", user_message["content"])
+
+            # Prepare messages
+            messages = [system_prompt, user_message]
 
             # Call the model with tools
             try:
                 response: ChatResponse = chat(
                     "llama3.2:1b-instruct-q3_K_L",
-                    keep_alive="60m",
-                    messages=[Template.system_prompt_for_tools_intro(), user_message],
-                    tools=[BaseTool.greeting, BaseTool.add_two_numbers, BaseTool.subtract_two_numbers, BaseTool.retriever],
+                    messages=messages,
+                    tools=[greeting, add_two_numbers, subtract_two_numbers, retriver],
                 )
             except ResponseError as e:
                 print("Error:", e.error)
 
             print("\n\nSelected:", response, end="\n\n")
 
-
-            messages = [Template.system_prompt_for_output(), user_message]
             if response.message.tool_calls:
                 tool_outputs = []
                 for tool_call in response.message.tool_calls:
@@ -364,8 +505,6 @@ async def websocket_endpoint(
                         if function_name != "greeting":
                             # if function_name != 'retriver':
                             result = function_to_call(**function_args)
-                            print("==========", result)
-
                             print("\n\nFunction output:", result, end="\n\n")
                             tool_outputs.append(
                                 {
@@ -378,23 +517,25 @@ async def websocket_endpoint(
                 if tool_outputs:
                     # Append tool outputs correctly
                     messages.extend(tool_outputs)
+                    # Explicitly instruct the model to respond based on the tool results
+                    # messages.append({'role': 'user', 'content': 'What is the final answer?'})
+                    # messages.append({'role': 'system', 'content': "Use the provided context of information to answer the question."})
+                    # messages.append({"role": "system", "content": "You are an AI chatbot always formats responses in Markdown."})
 
-
-                print("\n\n **Tool used:\n", function_name, end="\n\n")
                 print("\n\n **Final Messages:\n", messages, end="\n\n")
 
-            # Get final response
+                # Get final response
             try:
-                # messages.extend(tool_message)
+                messages.extend(tool_message)
                 final_response = chat(
                     "llama3.2:1b-instruct-q3_K_L",
                     messages=messages,
-                    keep_alive="60m",
+                    keep_alive="50m",
                 )
             except ResponseError as e:
                 print("Error:", e.error)
 
-            # print("\n\nFinal response:\n", final_response.message.content)
+            print("\n\nFinal response:\n", final_response.message.content)
 
             # for chunk in final_response:
             #   await websocket.send_text(f"{chunk['message']['content']}")
@@ -402,6 +543,6 @@ async def websocket_endpoint(
 
             end_time = time.time()
             elapsed_time = end_time - start_time
-            await manager.send_personal_message(final_response.message.content + ' **time take:' + str(round(elapsed_time)) +  ' second' , websocket)
+            await manager.send_personal_message(final_response.message.content, websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)

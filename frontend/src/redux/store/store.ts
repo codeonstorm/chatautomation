@@ -1,25 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
+import userReducer from './features/user/user'
 import domainReducer from './features/domain/domain'
-
-
-// don't do this as global in next js
-
-// export const store = configureStore({
-//   reducer: {
-//     domain: domainReducer,
-//   },
-// })
-
-// // Infer the `RootState` and `AppDispatch` types from the store itself
-// export type RootState = ReturnType<typeof store.getState>
-// // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
-// export type AppDispatch = typeof store.dispatch
-
+import chatbotReducer from './features/chatbot/chatbot'
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
+      user: userReducer,
       domains: domainReducer,
+      chatbots: chatbotReducer
     },
   })
 }

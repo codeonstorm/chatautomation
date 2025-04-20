@@ -1,5 +1,5 @@
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
+from qdrant_client.models import Distance, VectorParams, PointStruct, SearchParams
 import uuid
 import os
 from dotenv import load_dotenv
@@ -44,6 +44,19 @@ class VectorDB:
     def close(self):
         """Close Qdrant client connection."""
         self.client.close()
+
+    # new 
+    def search(self, query_vector, top_k=5):
+        """Search for the most similar vectors in the collection."""
+        search_result = self.client.search(
+            collection_name=self.collection_name,
+            query_vector=query_vector,
+            limit=top_k,
+            # score_threshold=0.5,
+            search_params=SearchParams(hnsw_ef=128, exact=False)
+        )
+        return search_result
+
 
 
 if __name__ == "__main__":
