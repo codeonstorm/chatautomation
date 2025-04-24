@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{chatbot.name}}</title>
+  <style>
+    :root {
+      --primary-color: {{chatbot.primary_color or '#4a56e2'}};
+      --bot-bg: #f0f0f5;
+      --user-bg: {{chatbot.secondary_color or '#4a56e2'}};
+      --text-light: #fff;
+      --text-dark: #333;
+      --radius: 1rem;
+      --transition: all 0.3s ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9fb;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 480px;
+      height: 90vh;
+      background-color: white;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background-color: #fff;
+    }
+
+    .message {
+      padding: 0.75rem 1rem;
+      max-width: 75%;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      line-height: 1.4;
+      transition: var(--transition);
+      word-break: break-word;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background-color: var(--bot-bg);
+      color: var(--text-dark);
+      border-bottom-left-radius: 0.25rem;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background-color: var(--user-bg);
+      color: var(--text-light);
+      border-bottom-right-radius: 0.25rem;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 1rem;
+      background-color: #fff;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    #messageText {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #dcdcdc;
+      border-radius: var(--radius);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    #messageText:focus {
+      border-color: var(--primary-color);
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      margin-left: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius);
+      font-weight: bold;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    button:hover {
+      background-color: #3a46c2;
+    }
+
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      background: var(--bot-bg);
+      border-radius: var(--radius);
+      padding: 0.6rem 1rem;
+      margin-left: 0.25rem;
+    }
+
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin: 0 2px;
+      background-color: #888;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-indicator span:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="header">{{chatbot.name}}</div>
+    <div id="messages" class="messages">
+      <div class="message bot">Hello! How can I help you today?</div>
+    </div>
+    <div id="typingIndicator" class="typing-indicator">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="input-container">
+      <input type="text" id="messageText" placeholder="Type your message..." />
+      <button id="sendButton">Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    let accessToken = '';
+    let ws = null;
+
+    connectWebSocket();
+
+    function connectWebSocket() {
+      ws = new WebSocket(`ws://${window.location.host}/chat/${window.location.href.split('/')[4]}/ws?token=${accessToken}`);
+      
+      ws.onopen = () => console.log('Connected to chat.');
+      
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        addMessage(marked.parse(data.message), 'bot');
+        document.getElementById('typingIndicator').style.display = 'none';
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket closed. Reconnecting...');
+        setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = (error) => console.error('WebSocket error:', error);
+    }
+
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+    document.getElementById('messageText').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    function sendMessage() {
+      const input = document.getElementById('messageText');
+      const message = input.value.trim();
+      if (message && ws && ws.readyState === WebSocket.OPEN) {
+        addMessage(message, 'user');
+        ws.send(JSON.stringify({ message }));
+        input.value = '';
+        document.getElementById('typingIndicator').style.display = 'flex';
+      }
+    }
+
+    function addMessage(msg, sender) {
+      const messages = document.getElementById('messages');
+      const msgElem = document.createElement('div');
+      msgElem.className = `message ${sender}`;
+      msgElem.innerHTML = msg;
+      messages.appendChild(msgElem);
+      messages.scrollTop = messages.scrollHeight;
+    }
+  </script>
+</body>
+</html>

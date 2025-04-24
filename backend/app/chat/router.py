@@ -5,6 +5,7 @@ from fastapi import (
     WebSocketDisconnect,
     HTTPException,
     status,
+    Request
 )
 from fastapi.responses import HTMLResponse
 from sqlmodel import Session
@@ -28,8 +29,21 @@ from app.classes.document_embedding import DocumentEmbedder
 from app.classes.base_tool import BaseTool
 from app.classes.template import Template
 from app.classes.greeting import GreetingResponder
+from pathlib import Path
+from setfit import SetFitModel
+
+from sqlmodel import Session, select
+from app.core.database import get_session
+from app.models.chatbot import Chatbot
+
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+
+MODEL_DIR = Path("models")
+model = SetFitModel.from_pretrained(MODEL_DIR / "buybot_setfit_model" / "buybot_setfit_model")
 
 chat_router = APIRouter(prefix="/chat/{chatbot_uuid}", tags=["chat"])
+templates = Jinja2Templates(directory="templates")
  
 available_functions = {
     # 'greeting': greeting,
@@ -37,239 +51,6 @@ available_functions = {
     "subtract_two_numbers": BaseTool.subtract_two_numbers,
     "retriever": BaseTool.retriever,
 }
-
-
-# HTML template for the chat interface
-html = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>BuyBot Chat</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f5f5f5;
-        }
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            background-color: #4a56e2;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            background-color: white;
-        }
-        .message {
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            max-width: 80%;
-            word-break: break-word;
-        }
-        .user {
-            align-self: flex-end;
-            background-color: #4a56e2;
-            color: white;
-            border-bottom-right-radius: 0.25rem;
-        }
-        .bot {
-            align-self: flex-start;
-            background-color: #e9e9eb;
-            color: #333;
-            border-bottom-left-radius: 0.25rem;
-        }
-        .input-container {
-            display: flex;
-            padding: 1rem;
-            background-color: white;
-            border-top: 1px solid #e0e0e0;
-        }
-        #messageText {
-            flex: 1;
-            padding: 0.75rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 0.5rem;
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
-        button {
-            background-color: #4a56e2;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #3a46c2;
-        }
-        .auth-container {
-            max-width: 400px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-        input[type="email"], input[type="password"] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-        .error-message {
-            color: #e53935;
-            margin-top: 1rem;
-        }
-        .typing-indicator {
-            display: none;
-            align-self: flex-start;
-            background-color: #e9e9eb;
-            color: #333;
-            border-radius: 1rem;
-            padding: 0.75rem 1rem;
-            margin-top: 0.5rem;
-        }
-        .typing-indicator span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #666;
-            border-radius: 50%;
-            animation: typing 1s infinite;
-            margin-right: 3px;
-        }
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        @keyframes typing {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-    </style>
-</head>
-<body>
-    <div id="chatContainer" class="chat-container">
-        <div class="header">
-            BuyBot
-        </div>
-        <div id="messages" class="messages">
-            <div class="message bot">
-                Hello! How can I help you today?
-            </div>
-        </div>
-        <div id="typingIndicator" class="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="input-container">
-            <input type="text" id="messageText" placeholder="Type your message...">
-            <button id="sendButton">Send</button>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-        let accessToken = '';
-        let ws = null;
-
-        connectWebSocket();
-
-        function connectWebSocket() {
-            // ws = new WebSocket(`ws://${window.location.host}/chat/ws?token=${accessToken}`);
-            ws = new WebSocket(`ws://${window.location.host}/chat/${window.location.href.split('/')[4]}/ws?token=${accessToken}`);
-            
-            ws.onopen = function(event) {
-                console.log('Connection opened');
-            };
-            
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                addMessage(marked.parse(data.message), 'bot');
-                document.getElementById('typingIndicator').style.display = 'none';
-            };
-            
-            ws.onclose = function(event) {
-                console.log('Connection closed');
-                // Attempt to reconnect after a delay
-                setTimeout(connectWebSocket, 3000);
-            };
-            
-            ws.onerror = function(error) {
-                console.error('WebSocket error:', error);
-            };
-        }
-
-        document.getElementById('sendButton').addEventListener('click', sendMessage);
-        document.getElementById('messageText').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        function sendMessage() {
-            const messageInput = document.getElementById('messageText');
-            const message = messageInput.value.trim();
-            
-            if (message && ws && ws.readyState === WebSocket.OPEN) {
-                addMessage(message, 'user');
-                ws.send(JSON.stringify({ message: message }));
-                messageInput.value = '';
-                
-                // Show typing indicator
-                document.getElementById('typingIndicator').style.display = 'block';
-            }
-        }
-
-        function addMessage(message, sender) {
-            const messagesContainer = document.getElementById('messages');
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', sender);
-            messageElement.innerHTML = message;
-            messagesContainer.appendChild(messageElement);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-    </script>
-</body>
-</html>
-"""
 
 class ConnectionManager:
     def __init__(self):
@@ -291,9 +72,25 @@ manager = ConnectionManager()
 
 @chat_router.get("", response_class=HTMLResponse)
 async def get_chat(
-    chatbot_uuid: UUID
+    request: Request,
+    chatbot_uuid: UUID,
+    session: Session = Depends(get_session)
 ):
-    return HTMLResponse(content=html)
+    try:
+        chatbot = session.exec(
+            select(Chatbot).where(Chatbot.uuid == chatbot_uuid)
+        ).first()
+    except Exception as e:
+        print("Error fetching chatbot:", e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    if not chatbot:
+     return HTMLResponse(status_code=404, content="Chatbot not found")
+
+    return templates.TemplateResponse("chatbot.html", {
+        "request": request,
+        "chatbot": chatbot
+    })
 
 
 @chat_router.websocket("/ws")
@@ -306,94 +103,162 @@ async def websocket_endpoint(
     WebSocket endpoint for chat
     """
     await manager.connect(websocket)
+    chat_history_store = []
     try:
         while True:
             data = await websocket.receive_json()
+            start_time = time.time()
             user_message_str = data.get("message", "")
+            standalone_question = ""
 
             if not user_message_str:
                 continue
-
             if len(user_message_str) < 2:
                 await manager.send_personal_message("Hello! How can I help you today?", websocket)
                 continue
 
-
             responder = GreetingResponder()
             response = responder.check_greeting(user_message_str)
-
             if response:
                 await manager.send_personal_message(response, websocket)
                 continue
             
-            start_time = time.time()
-            user_message = {"role": "user", "content": user_message_str}
-            print("\n\Question:", user_message["content"])
-
-            # Call the model with tools
             try:
-                response: ChatResponse = chat(
+                t1 = time.time()
+                predicted_intent = model([user_message_str])
+                print(f"\n\n\n\nSetFitModel Intent ': {predicted_intent} {time.time() - t1} seconds")
+
+                if predicted_intent == 'greeting':
+                    await manager.send_personal_message("Hello! How can I help you today?", websocket)
+                    continue
+                elif predicted_intent == 'goodbye':
+                    await manager.send_personal_message("Take care, until next time!", websocket)
+                    continue
+                elif predicted_intent == 'restricted_content':
+                    await manager.send_personal_message("I'm here to help with respectful, safe, and appropriate topics. Let's keep things positive and productive!", websocket)
+                    continue
+                elif predicted_intent == 'schedule_meet':
+                    await manager.send_personal_message("Sorry, I don't have enough information to schedule meeting", websocket)
+                    continue
+                
+                # Standalone Question Preparation
+                stand = [Template.condense_question_system_template()]
+                for history in chat_history_store:
+                    stand.append(history)
+                stand.append({"role": "user", "content": user_message_str})
+                # print('\n\n stand: ', stand)
+
+                t2 = time.time()
+                standalone_response: ChatResponse = chat(
+                    # "gemma3:1b",
                     "llama3.2:1b-instruct-q3_K_L",
                     keep_alive="60m",
-                    messages=[Template.system_prompt_for_tools_intro(), user_message],
-                    tools=[BaseTool.greeting, BaseTool.add_two_numbers, BaseTool.subtract_two_numbers, BaseTool.retriever],
+                    messages=stand
                 )
+                standalone_question = standalone_response.message.content
+                print("\ngemma3:1b stanalone Que: ", standalone_question, time.time() - t2, 'seconds')
+
             except ResponseError as e:
                 print("Error:", e.error)
+                await manager.send_personal_message("Error...", websocket)
+                continue
+        
+            # Update chat history with the standalone question
+            user_message = {"role": "user", "content": standalone_question}
+            chat_history_store.append({
+                "role": "user",
+                "content": user_message_str,
+            })
 
-            print("\n\nSelected:", response, end="\n\n")
+            # ////////////// tool calls ////////////////
 
+            # Call the model with tools
+            # tool_prompt = []
+            # tool_prompt.append(Template.system_prompt_for_tools_intro())
+            # tool_prompt.extend(chat_history_store)
 
-            messages = [Template.system_prompt_for_output(), user_message]
-            if response.message.tool_calls:
-                tool_outputs = []
-                for tool_call in response.message.tool_calls:
-                    function_name = tool_call.function.name
-                    function_args = tool_call.function.arguments
-                    # function_args = {k: int(v) for k, v in function_args.items()}
+            # try:
+            #     t3 = time.time()
+            #     response: ChatResponse = chat(
+            #         "llama3.2:1b-instruct-q3_K_L",
+            #         keep_alive="60m",
+            #         messages=tool_prompt,
+            #         tools=[BaseTool.greeting, BaseTool.add_two_numbers, BaseTool.subtract_two_numbers, BaseTool.retriever],
+            #     )
+            #     print("===Tool response time:", time.time() - t3)
+            # except ResponseError as e:
+            #     print("Error:", e.error)
+            #     await manager.send_personal_message("Error...S", websocket)
+            #     continue
 
-                    if function_to_call := available_functions.get(function_name):
-                        print(
-                            "\n\n == Calling function: ==",
-                            function_name,
-                            "Arguments:",
-                            function_args,
-                            end="\n\n",
-                        )
+            # print("\n\nSelected:", response, end="\n\n")
 
-                        if function_name != "greeting":
-                            # if function_name != 'retriver':
-                            result = function_to_call(**function_args)
-                            print("==========", result)
+            # messages = [Template.system_prompt_for_output(), user_message]
+            # if response.message.tool_calls:
+            #     tool_outputs = []
+            #     for tool_call in response.message.tool_calls:
+            #         function_name = tool_call.function.name
+            #         function_args = tool_call.function.arguments
+            #         # function_args = {k: int(v) for k, v in function_args.items()}
 
-                            print("\n\nFunction output:", result, end="\n\n")
-                            tool_outputs.append(
-                                {
-                                    "role": "tool",
-                                    "name": function_name,
-                                    "content": str(result),
-                                }
-                            )
+            #         if function_to_call := available_functions.get(function_name):
+            #             print(
+            #                 "\n\n == Calling function: ==",
+            #                 function_name,
+            #                 "Arguments:",
+            #                 function_args,
+            #                 end="\n\n",
+            #             )
 
-                if tool_outputs:
-                    # Append tool outputs correctly
-                    messages.extend(tool_outputs)
+            #             if function_name != "greeting":
+            #                 # if function_name != 'retriver':
+            #                 result = function_to_call(**function_args)
+            #                 tool_outputs.append(
+            #                     {
+            #                         "role": "tool",
+            #                         "name": function_name,
+            #                         "content": str(result),
+            #                     }
+            #                 )
 
+            #     if tool_outputs:
+            #         messages.extend(tool_outputs)
 
-                print("\n\n **Tool used:\n", function_name, end="\n\n")
-                print("\n\n **Final Messages:\n", messages, end="\n\n")
+            #     print("\n\n **Tool used:\n", function_name, end="\n\n")
+            #     print("\n\n **Final Messages:\n", messages, end="\n\n")
+
+                # ////////////// tool calls ////////////////
 
             # Get final response
+            t3 = time.time()
+            tool_response = BaseTool.retriever(standalone_question)
+            print("\n===Tool response time:", time.time() - t3, 'seconds\n')
+            print("Tool response:\n", tool_response, end="\n\n")
+            tool_message = {
+                "role": "tool",
+                "name": 'retriever',
+                "content": str(tool_response),
+            }
+            messages = [Template.system_prompt_for_output(), tool_message, user_message]
             try:
-                # messages.extend(tool_message)
+                t4 = time.time()
                 final_response = chat(
                     "llama3.2:1b-instruct-q3_K_L",
                     messages=messages,
                     keep_alive="60m",
                 )
-            except ResponseError as e:
-                print("Error:", e.error)
+                print("===LLAMA response time:", time.time() - t4, 'seconds')
 
+                chat_history_store.append({
+                    "role": "assistant",
+                    "content": final_response.message.content,
+                })
+            except ResponseError as e:          
+                print("Error:", e.error)
+                await manager.send_personal_message("Error...S", websocket)
+                continue
+
+            # print("\n\n\n history:", chat_history_store)
             # print("\n\nFinal response:\n", final_response.message.content)
 
             # for chunk in final_response:

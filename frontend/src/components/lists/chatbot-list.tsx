@@ -186,7 +186,7 @@ export function ChatbotList() {
           {chatbots.map((bot) => (
             <TableRow key={bot.uuid}>
               <TableCell>
-                <Link href={`/dashboard/chatbots/${bot.uuid}`}>{bot.name}</Link>
+                <Link href={`http://127.0.0.1:8000/chat/${bot.uuid}`} target="_bank">{bot.name}</Link>
               </TableCell>
               <TableCell>
                 <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800">
