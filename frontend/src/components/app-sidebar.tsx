@@ -143,8 +143,8 @@ const data = {
   ],
   projects: [
     {
-      name: "Design Engineering",
-      url: "#",
+      name: "Training Progress",
+      url: "/dashboard/chatbots/training",
       icon: Frame,
     },
     {

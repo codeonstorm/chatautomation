@@ -199,7 +199,7 @@ export function ChatbotList() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(bot.uuid)}
+                    onClick={() => bot.uuid && handleEdit(bot.uuid)}
                   >
                     <Pencil className="h-4 w-4 mr-1" /> Edit
                   </Button>
@@ -243,7 +243,7 @@ export function ChatbotList() {
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(bot.uuid)}
+                          onClick={() => bot.uuid && handleDelete(bot.uuid)}
                           className="bg-red-500 hover:bg-red-700"
                         >
                           Delete
