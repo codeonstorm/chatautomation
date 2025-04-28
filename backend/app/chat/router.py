@@ -150,8 +150,8 @@ async def websocket_endpoint(
 
                 t2 = time.time()
                 standalone_response: ChatResponse = chat(
-                    # "gemma3:1b",
-                    "llama3.2:1b-instruct-q3_K_L",
+                    "gemma3:1b",
+                    # "llama3.2:1b-instruct-q3_K_L",
                     keep_alive="60m",
                     messages=stand
                 )

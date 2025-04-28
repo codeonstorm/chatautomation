@@ -55,6 +55,7 @@ export function DomainList() {
           <TableRow>
             <TableHead>Domain</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Registor On</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>

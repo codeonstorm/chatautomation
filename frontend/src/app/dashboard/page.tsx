@@ -27,7 +27,7 @@ import {
 import { ChatbotList } from "../../components/lists/chatbot-list";
 import { DomainList } from "../../components/lists/domain-list";
 import { FunctionList } from "../../components/lists/function-list";
-import { EmbedCode } from "../../components/embed-code";
+import { EmbedCode } from "../../components/lists/embed-code";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";

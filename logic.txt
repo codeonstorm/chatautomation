@@ -73,6 +73,22 @@ chatbot_type:enum(
   'custom'          -- For user-defined functionalities or niche use cases.
 )
 
+1.1:
+Intent
+|intent|intent_name|description|
+
+functions
+| id | intent(optional) | name | description | type:ENUM('api') | endpoint_url VARCHAR (nullable)
+| require_parameters	| response_schema (optional) | auth_type | auth_details (json) | status (enabled/disabled/deleted) |  | created_at | updated_at|
+
+schema example:
+api_key:	{ "key_name": "X-API-Key", "key_value": "abcd1234" }
+bearer_token: { "token": "your-access-token-here" }
+basic_auth: { "username": "user", "password": "pass" }
+custom: { "headers": { "Authorization": "Custom abc123", "Another-Header": "value" } }
+
+
+
 2nd:
 services
    | 

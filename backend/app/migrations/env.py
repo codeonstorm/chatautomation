@@ -21,6 +21,7 @@ from app.models.service import Service
 from app.models.chatbot import Chatbot
 from app.models.domain import Domain
 from app.models.dataset import Dataset
+from app.models.function import Function
 
 load_dotenv()
 

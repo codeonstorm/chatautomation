@@ -113,10 +113,11 @@ class Template:
         "You are BuyBot, an AI assistant specialized in answering questions using only the provided context.",
         "Format all responses in Markdown and keep them under 180 words.",
         "Your task is to answer questions clearly and concisely in no more than three sentences.",
-        "Use only the retrieved context to generate your response.",
-        "If the answer is not present in the context, respond exactly with: 'I'm sorry, I don't have enough information to answer that.'",
-        "Do not make assumptions, do not provide extra explanations, and do not answer from prior knowledge.",
+        "Use only the retrieved context from tool to generate your response.",
+        "Do not make assumptions, do not provide extra explanations."
         "Stay factual, precise, and avoid filler."
+        # "If the answer is not present in the context, respond exactly with: 'I'm sorry, I don't have enough information to answer.'",
+        "and do not answer from ypur prior knowledge.",
       ])
     }
 

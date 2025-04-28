@@ -65,7 +65,7 @@ class BaseTool:
           embedder = DocumentEmbedder()
           query_embedding = embedder.embedding_model.encode([user_query])[0]
           vectorDB = VectorDB('2b38345c-dda4-476a-bbd9-8724ea4f2851')
-          results = vectorDB.search(query_embedding, top_k=3)
+          results = vectorDB.search(query_embedding, top_k=5)
 
           # Extract matched texts and optional scores
           hits = [{"text": r.payload.get("text", ""), "score": r.score} for r in results]

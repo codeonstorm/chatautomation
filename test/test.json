@@ -1,0 +1,16 @@
+[
+  {'role': 'system', 'content': "You are BuyBot, an AI assistant specialized in answering questions using only the provided context.\nFormat all responses in Markdown and keep them under 180 words.\nYour task is to answer questions clearly and concisely in no more than three sentences.\nUse only the retrieved context to generate your response.\nIf the answer is not present in the context, respond exactly with: 'I'm sorry, I don't have enough information to answer that.'\nDo not make assumptions, do not provide extra explanations, and do not answer from prior knowledge.\nStay factual, precise, and avoid filler."
+  },
+  {
+    'role': 'user', '
+    content': 'Do you want to understand how to calculate accurate quantiles using t-digests?'
+  },
+  {'role': 'tool', 
+  'name': 'retriever', 
+  'content': "[{
+    'text': 'Computing Extremely Accurate Quantiles Using t-Digests\\n\\nTed Dunning†\\nMapR Technologies, Inc Santa Clara, CA\\nE-mail: ted.dunning@gmail.com Otmar Ertl\\nDynatrace Linz, Austria\\nE-mail: otmar.ertl@gmail.com', 'score': 0.8384225368499756}, 
+    {'text': '5 parts\\n20 parts\\n100 parts\\n\\n\\n  \\n\\n0.001 0.01  0.1  0.2  0.3  0.5\\nQuantile \\uf028q\\uf029\\n0.01  0.1\\t0.2\\t0.3\\t0.5\\nQuantile \\uf028q\\uf029\\n0.01  0.1\\t0.2\\t0.3\\t0.5\\nQuantile \\uf028q\\uf029\\n\\n\\nFig. 9. Accuracy of a t-digest accumulated directly is nearly the same as when the digest is computed by combining digests from 5, 20 or 100 equal sized paritions of the data. All panels were computed by 20 repetitions of aggregating 1,000,000 values.', 'score': 0.8063583374023438}, 
+    {'text': 'algorithms can compute approximate values of quantiles using constant or only wenearly the same as when the digest is computed by combining digests from 5, 20 or 100 equal sized paritions of the data. All panels were computed by 20 repetitions of aggregating 1,000,000 values.', 'score': 0.8063583374023438}, 
+    {'text': 'algorithms can compute approximate values of quantiles using constant or only weakly increasing memory footprint, but these previous algorithms cannot provide constant relative accuracy. The new algorithm described here, the t-digest, provides constant memory bounds and constant relative accuracy while operating in a strictly on-line fashion.', 'score': 0.7794609069824219}]"
+  }
+]
