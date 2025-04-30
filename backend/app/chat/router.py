@@ -19,8 +19,9 @@ from app.core.auth import get_current_active_user
 from app.core.config import settings
 from app.core.database import get_session
 from app.models.user import User
+from app.models.chathistory import ChatHistory, KnownUser, MessageTypeEnum, FeedbackEnum
 from app.schemas.token import TokenPayload
-from uuid import UUID
+from uuid import uuid4, UUID
 
 from ollama import ChatResponse, chat, ResponseError, Client
 import time
@@ -38,6 +39,8 @@ from app.models.chatbot import Chatbot
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+
+from app.schemas.chathistory import ChatHistoryRead
 
 MODEL_DIR = Path("models")
 model = SetFitModel.from_pretrained(MODEL_DIR / "buybot_setfit_model" / "buybot_setfit_model")
@@ -57,6 +60,7 @@ class ConnectionManager:
         self.active_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
+        # recognize the user here...
         await websocket.accept()
         self.active_connections.append(websocket)
 
@@ -81,7 +85,7 @@ async def get_chat(
             select(Chatbot).where(Chatbot.uuid == chatbot_uuid)
         ).first()
     except Exception as e:
-        print("Error fetching chatbot:", e)
+        # print("Error fetching chatbot:", e)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
     if not chatbot:
@@ -89,7 +93,7 @@ async def get_chat(
 
     return templates.TemplateResponse("chatbot.html", {
         "request": request,
-        "chatbot": chatbot
+        "chatbot": chatbot,
     })
 
 
@@ -97,11 +101,30 @@ async def get_chat(
 async def websocket_endpoint(
     websocket: WebSocket, 
     chatbot_uuid: UUID,
-    token: str = None
+    token: UUID,
+    session: Session = Depends(get_session)
 ):
     """
     WebSocket endpoint for chat
     """
+    user = session.exec(
+        select(KnownUser).where(KnownUser.session_uuid == token)
+    ).first()
+
+    if not user:
+        knownuser = KnownUser(
+            session_uuid=token,
+            chatbot_uuid=chatbot_uuid,
+            domain_uuid=UUID("0b88191e-b059-42c6-bc89-8156f4943ab5"),
+            user_data=str({
+                "name": "Unknown",
+                "email": "Unknown",
+                "phone": "Unknown",
+            })
+        )
+        session.add(knownuser)
+        session.commit()
+
     await manager.connect(websocket)
     chat_history_store = []
     try:
@@ -113,8 +136,29 @@ async def websocket_endpoint(
 
             if not user_message_str:
                 continue
-            if len(user_message_str) < 2:
+
+            # user msg entry
+            chathistory = ChatHistory(
+                session_uuid=token,
+                type=MessageTypeEnum.user,
+                feedback=FeedbackEnum.neutral,
+                msg=user_message_str,
+            )
+
+            session.add(chathistory)
+            session.commit()
+
+            if len(user_message_str) <= 2:
                 await manager.send_personal_message("Hello! How can I help you today?", websocket)
+                # assistant msg entry
+                chathistory = ChatHistory(
+                    session_uuid=token,
+                    type=MessageTypeEnum.assistant,
+                    feedback=FeedbackEnum.neutral,
+                    msg="Hello! How can I help you today?",
+                )
+                session.add(chathistory)
+                session.commit()
                 continue
 
             responder = GreetingResponder()
@@ -270,3 +314,32 @@ async def websocket_endpoint(
             await manager.send_personal_message(final_response.message.content + ' **time take:' + str(round(elapsed_time)) +  ' second' , websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+
+# chathistory
+#  auth pending ..
+@chat_router.get("/users", response_model=List[KnownUser])
+async def read_chat_history(
+    chatbot_uuid: UUID,
+    session: Session = Depends(get_session)
+):
+    user = session.exec(
+        select(KnownUser).where(KnownUser.chatbot_uuid == chatbot_uuid)
+    ).all()
+    if not user:
+        raise HTTPException(status_code=404, detail="not find user")
+    return user 
+
+
+
+@chat_router.get("/history/{session_uuid}", response_model=List[ChatHistoryRead])
+async def chat_users(
+    session_uuid: UUID,
+    session: Session = Depends(get_session)
+):
+    chat_history = session.exec(
+        select(ChatHistory).where(ChatHistory.session_uuid == session_uuid)
+    ).all()
+    if not chat_history:
+        raise HTTPException(status_code=404, detail="Chat history not found")
+    return chat_history 

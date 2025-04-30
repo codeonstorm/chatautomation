@@ -176,8 +176,19 @@
 
     connectWebSocket();
 
+    function generateSessionId() {
+      return crypto.randomUUID();
+    }
+
     function connectWebSocket() {
-      ws = new WebSocket(`ws://${window.location.host}/chat/${window.location.href.split('/')[4]}/ws?token=${accessToken}`);
+      let sessionId = localStorage.getItem("chatsession");
+
+      if (!sessionId) {
+        sessionId = generateSessionId();
+        localStorage.setItem("chatsession", sessionId);
+      }
+
+      ws = new WebSocket(`ws://${window.location.host}/chat/${window.location.href.split('/')[4]}/ws?token=${sessionId}`);
       
       ws.onopen = () => console.log('Connected to chat.');
       
