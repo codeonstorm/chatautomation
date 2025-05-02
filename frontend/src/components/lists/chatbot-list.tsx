@@ -60,6 +60,18 @@ import {
 } from "@/redux/store/features/chatbot/chatbot";
 import { useAuth } from "@/context/auth-context";
 
+function base64EncodeUnicode(str:string) {
+  const encoded = btoa(str);
+  console.log(encoded); 
+  return encoded
+}
+
+function base64DecodeUnicode(encodedstr:string) {
+  const decoded = atob(encodedstr);
+  console.log(decoded);
+  return decoded
+}
+
 export function ChatbotList() {
   // const [isAuthenticated, setIsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false)
@@ -186,7 +198,7 @@ export function ChatbotList() {
           {chatbots.map((bot) => (
             <TableRow key={bot.uuid}>
               <TableCell>
-                <Link href={`http://127.0.0.1:8000/chat/${bot.uuid}`} target="_bank">{bot.name}</Link>
+                <Link href={`http://127.0.0.1:8000/chat/${base64EncodeUnicode(bot.uuid + '|0b88191e-b059-42c6-bc89-8156f4943ab5')}`} target="_bank">{bot.name}</Link>
               </TableCell>
               <TableCell>
                 <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800">
@@ -221,6 +233,15 @@ export function ChatbotList() {
                     }
                   >
                     <Eye className="h-4 w-4 mr-1" /> Preview
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      router.push(`/dashboard/chatbots/history/${bot.uuid}`)
+                    }
+                  >
+                    <BookOpen className="h-4 w-4 mr-1" /> Chat History
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

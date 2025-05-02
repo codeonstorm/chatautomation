@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -11,66 +11,39 @@ import { Search, Calendar, Download, Filter } from "lucide-react"
 import { ClientList } from "@/components/client-list"
 import { ChatHistory } from "@/components/chat-history"
 
-// Mock data for clients
-const clients = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    lastMessage: "Thanks for your help!",
-    lastMessageTime: "2 hours ago",
-    unread: 0,
-    avatar: "",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    lastMessage: "I'll check and get back to you",
-    lastMessageTime: "Yesterday",
-    unread: 2,
-    avatar: "",
-  },
-  {
-    id: "3",
-    name: "Robert Johnson",
-    email: "robert@example.com",
-    lastMessage: "Can you help me with my account?",
-    lastMessageTime: "2 days ago",
-    unread: 0,
-    avatar: "",
-  },
-  {
-    id: "4",
-    name: "Emily Davis",
-    email: "emily@example.com",
-    lastMessage: "The issue has been resolved",
-    lastMessageTime: "3 days ago",
-    unread: 0,
-    avatar: "",
-  },
-  {
-    id: "5",
-    name: "Michael Wilson",
-    email: "michael@example.com",
-    lastMessage: "I need assistance with my order",
-    lastMessageTime: "1 week ago",
-    unread: 0,
-    avatar: "",
-  },
-]
+import { addChatUsers } from "@/redux/store/features/chathistory/chathistory"
+import { useAppDispatch } from "@/redux/store/hooks"
+import type { ChatUser } from "@/types/chatuser"
+import { useSelector } from "react-redux"
+import type { RootState } from "@/redux/store/store"
+import { getChatUsers } from "@/services/chatuser"
 
-export default function ChatHistoryPage() {
+export default function ChatHistoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params)
+  const dispatch = useAppDispatch()
+  const fetchedRef = useRef(false)
+  const chat_clients: ChatUser[] = useSelector((state: RootState) => state.chatuser)
+
+  useEffect(() => {
+    if (!id || fetchedRef.current) return
+    fetchedRef.current = true
+    const chatuser = async () => {
+      const chatusersdata: ChatUser[] = await getChatUsers(id)
+      dispatch(addChatUsers(chatusersdata))
+    }
+    chatuser()
+  }, [dispatch, id])
+
   const [selectedClient, setSelectedClient] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
-  const filteredClients = clients.filter(
+  const filteredClients = chat_clients.filter(
     (client) =>
-      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchQuery.toLowerCase()),
+      (client.user_data?.name && client.user_data.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (client.user_data?.email && client.user_data.email.toLowerCase().includes(searchQuery.toLowerCase())),
   )
 
-  const selectedClientData = clients.find((client) => client.id === selectedClient)
+  const selectedClientData = chat_clients.find((client) => client.uuid === selectedClient)
 
   return (
     <div className="flex-1 flex h-[calc(100vh-4rem)]">
@@ -114,7 +87,8 @@ export default function ChatHistoryPage() {
           <TabsContent value="unread" className="m-0">
             <ScrollArea className="h-[calc(100vh-12rem)]">
               <ClientList
-                clients={filteredClients.filter((client) => client.unread > 0)}
+                clients={filteredClients.filter((client) => 0 > 0)}
+                // clients={filteredClients.filter((client) => client.unread > 0)}
                 selectedClientId={selectedClient}
                 onClientSelect={setSelectedClient}
               />
@@ -133,12 +107,16 @@ export default function ChatHistoryPage() {
             <div className="p-4 border-b flex justify-between items-center">
               <div className="flex items-center">
                 <Avatar className="h-10 w-10 mr-4">
-                  <AvatarImage src={selectedClientData?.avatar} alt={selectedClientData?.name} />
-                  <AvatarFallback>{selectedClientData?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarImage src="/placeholder.svg" alt={selectedClientData?.user_data.name || "Unknown User"} />
+                  <AvatarFallback>
+                    {selectedClientData &&
+                      selectedClientData.user_data.name &&
+                      selectedClientData.user_data.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="text-lg font-semibold">{selectedClientData?.name}</h2>
-                  <p className="text-sm text-muted-foreground">{selectedClientData?.email}</p>
+                  <h2 className="text-lg font-semibold">{selectedClientData?.user_data?.name}</h2>
+                  <p className="text-sm text-muted-foreground">{selectedClientData?.user_data?.email}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -186,4 +164,3 @@ export default function ChatHistoryPage() {
     </div>
   )
 }
-

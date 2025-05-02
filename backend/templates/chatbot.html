@@ -194,7 +194,10 @@
       
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        addMessage(marked.parse(data.message), 'bot');
+        if (data.message.includes('user: ')) {
+          addMessage(marked.parse(data.message.replace('user: ', '')), 'user');
+        } else
+        addMessage(marked.parse(data.message.replace('assistant: ', '')), 'bot');
         document.getElementById('typingIndicator').style.display = 'none';
       };
 

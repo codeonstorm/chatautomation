@@ -8,7 +8,7 @@ from fastapi import (
     Request
 )
 
-import base64
+
 from sqlmodel import select, func
 from sqlalchemy.orm import aliased
 
@@ -53,7 +53,7 @@ from app.schemas.chathistory import ChatHistoryRead, KnownUserRead
 MODEL_DIR = Path("models")
 model = SetFitModel.from_pretrained(MODEL_DIR / "buybot_setfit_model" / "buybot_setfit_model")
 
-chat_router = APIRouter(prefix="/chat", tags=["chat"])
+chat_router = APIRouter(prefix="/chat/{chatbot_uuid}", tags=["chat"])
 templates = Jinja2Templates(directory="templates")
  
 available_functions = {
@@ -82,23 +82,15 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@chat_router.get("/{encodedid}", response_class=HTMLResponse)
+@chat_router.get("", response_class=HTMLResponse)
 async def get_chat(
     request: Request,
-    encodedid: str,
+    chatbot_uuid: UUID,
     session: Session = Depends(get_session)
 ):
-    decoded = base64.b64decode(encodedid).decode('utf-8')
-    part = decoded.split('|')
-    chatbot_uuid = part[0]
-    domain_uuid = part[1]
-    
-    if not chatbot_uuid or not domain_uuid:
-        raise HTTPException(status_code=404, detail="Chatbot not found")
-    
     try:
         chatbot = session.exec(
-            select(Chatbot).where(Chatbot.uuid == UUID(chatbot_uuid))
+            select(Chatbot).where(Chatbot.uuid == chatbot_uuid)
         ).first()
     except Exception as e:
         # print("Error fetching chatbot:", e)
@@ -113,55 +105,35 @@ async def get_chat(
     })
 
 
-@chat_router.websocket("/{encodedid}/ws")
+@chat_router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket, 
-    encodedid: str,
+    chatbot_uuid: UUID,
     token: UUID,
     session: Session = Depends(get_session)
 ):
     """
     WebSocket endpoint for chat
     """
-    decoded = base64.b64decode(encodedid).decode('utf-8')
-    part = decoded.split('|')
-    chatbot_uuid = part[0]
-    domain_uuid = part[1]
-    
-    if not chatbot_uuid or not domain_uuid:
-        raise HTTPException(status_code=404, detail="Chatbot not found")
-    
     user = session.exec(
         select(KnownUser).where(KnownUser.session_uuid == token)
     ).first()
 
     if not user:
-        user = KnownUser(
+        knownuser = KnownUser(
             session_uuid=token,
-            chatbot_uuid=UUID(chatbot_uuid),
-            domain_uuid=UUID(domain_uuid),
+            chatbot_uuid=chatbot_uuid,
+            domain_uuid=UUID("0b88191e-b059-42c6-bc89-8156f4943ab5"),
             user_data=str({
                 "name": "Unknown",
                 "email": "Unknown",
                 "phone": "Unknown",
             })
         )
-        session.add(user)
+        session.add(knownuser)
         session.commit()
-        session.refresh(user)
-
-    chathistory = session.exec(
-        select(ChatHistory).where(ChatHistory.chatuser == user.uuid)
-    ).all()
 
     await manager.connect(websocket)
-    # get chat history form db
-    for history in chathistory:
-        if history.type == MessageTypeEnum.user:
-            await manager.send_personal_message('user: ' + history.msg, websocket)
-        elif history.type == MessageTypeEnum.assistant:
-            await manager.send_personal_message('assistant: ' + history.msg, websocket)
-   
     chat_history_store = []
     try:
         while True:
@@ -175,11 +147,12 @@ async def websocket_endpoint(
 
             # user msg entry
             chathistory = ChatHistory(
-                chatuser=user.uuid,
+                session_uuid=token,
                 type=MessageTypeEnum.user,
                 feedback=FeedbackEnum.neutral,
                 msg=user_message_str,
             )
+
             session.add(chathistory)
             session.commit()
 
@@ -187,7 +160,7 @@ async def websocket_endpoint(
                 await manager.send_personal_message("Hello! How can I help you today?", websocket)
                 # assistant msg entry
                 chathistory = ChatHistory(
-                    chatuser=user.uuid,
+                    session_uuid=token,
                     type=MessageTypeEnum.assistant,
                     feedback=FeedbackEnum.neutral,
                     msg="Hello! How can I help you today?",
@@ -209,51 +182,15 @@ async def websocket_endpoint(
 
                 if predicted_intent == 'greeting':
                     await manager.send_personal_message("Hello! How can I help you today?", websocket)
-                    # assistant msg entry
-                    chathistory = ChatHistory(
-                        chatuser=user.uuid,
-                        type=MessageTypeEnum.assistant,
-                        feedback=FeedbackEnum.neutral,
-                        msg="Hello! How can I help you today?",
-                    )
-                    session.add(chathistory)
-                    session.commit()
                     continue
                 elif predicted_intent == 'goodbye':
                     await manager.send_personal_message("Take care, until next time!", websocket)
-                    # assistant msg entry
-                    chathistory = ChatHistory(
-                        chatuser=user.uuid,
-                        type=MessageTypeEnum.assistant,
-                        feedback=FeedbackEnum.neutral,
-                        msg="Take care, until next time!",
-                    )
-                    session.add(chathistory)
-                    session.commit()
                     continue
                 elif predicted_intent == 'restricted_content':
                     await manager.send_personal_message("I'm here to help with respectful, safe, and appropriate topics. Let's keep things positive and productive!", websocket)
-                    # assistant msg entry
-                    chathistory = ChatHistory(
-                        chatuser=user.uuid,
-                        type=MessageTypeEnum.assistant,
-                        feedback=FeedbackEnum.neutral,
-                        msg="I'm here to help with respectful, safe, and appropriate topics. Let's keep things positive and productive!",
-                    )
-                    session.add(chathistory)
-                    session.commit()
                     continue
                 elif predicted_intent == 'schedule_meet':
                     await manager.send_personal_message("Sorry, I don't have enough information to schedule meeting", websocket)
-                    # assistant msg entry
-                    chathistory = ChatHistory(
-                        chatuser=user.uuid,
-                        type=MessageTypeEnum.assistant,
-                        feedback=FeedbackEnum.neutral,
-                        msg="Sorry, I don't have enough information to schedule meeting",
-                    )
-                    session.add(chathistory)
-                    session.commit()
                     continue
                 
                 # Standalone Question Preparation
@@ -362,15 +299,6 @@ async def websocket_endpoint(
                     messages=messages,
                     keep_alive="60m",
                 )
-
-                chathistory = ChatHistory(
-                    chatuser=user.uuid,
-                    type=MessageTypeEnum.assistant,
-                    feedback=FeedbackEnum.neutral,
-                    msg=final_response.message.content,
-                )
-                session.add(chathistory)
-                session.commit()
                 print("===LLAMA response time:", time.time() - t4, 'seconds')
 
                 chat_history_store.append({
@@ -398,7 +326,7 @@ async def websocket_endpoint(
 
 # chathistory
 #  auth pending ..
-@chat_router.get("/{chatbot_uuid}/users", response_model=List[KnownUserRead])
+@chat_router.get("/users", response_model=List[KnownUserRead])
 async def read_chat_history(
     chatbot_uuid: UUID,
     session: Session = Depends(get_session)
@@ -412,7 +340,7 @@ async def read_chat_history(
     knownUserArr = []
     for user in user:
         chathistory = session.exec(
-            select(ChatHistory).where(ChatHistory.chatuser == user.uuid)
+            select(ChatHistory).where(ChatHistory.session_uuid == user.session_uuid)
             .order_by(ChatHistory.timestamp.desc())
             .limit(1)
         ).first()
@@ -423,15 +351,13 @@ async def read_chat_history(
         print("\n\n\n\nuser_data ankit: ", user_data, end="\n\n")
         knownUserArr.append(
         KnownUserRead(
-            uuid=user.uuid,
             session_uuid=user.session_uuid,
             domain_uuid=user.domain_uuid,           
             chatbot_uuid=user.chatbot_uuid,
             user_data=user_data,
             timestamp=user.timestamp,
             latest_msg=ChatHistoryRead(
-                id=chathistory.id,
-                chatuser=chathistory.chatuser,
+                session_uuid=chathistory.session_uuid,
                 type=chathistory.type.value,
                 msg=chathistory.msg,
                 feedback=chathistory.feedback.value if chathistory.feedback else None,
@@ -495,13 +421,13 @@ async def read_chat_history(
 
 
 
-@chat_router.get("/{chatbot_uuid}/history/{chatuser_uuid}", response_model=List[ChatHistoryRead])
+@chat_router.get("/history/{session_uuid}", response_model=List[ChatHistoryRead])
 async def chat_users(
-    chatuser_uuid: UUID,
+    session_uuid: UUID,
     session: Session = Depends(get_session)
 ):
     chat_history = session.exec(
-        select(ChatHistory).where(ChatHistory.chatuser == chatuser_uuid)
+        select(ChatHistory).where(ChatHistory.session_uuid == session_uuid)
     ).all()
 
     print("\n\n\n\n\n\n\n\n\nchat_history: ", chat_history, end="\n\n") 
