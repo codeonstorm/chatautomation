@@ -1,100 +1,91 @@
-# chatautomation
+# Chat Automation Project
 
+## Environment Setup
+```bash
+# Create and activate conda environment
 conda create --name chatautomation python=3.12
 conda activate chatautomation
 conda deactivate
+```
 
+## Package Installation
+### Core Dependencies
+```bash
 pip freeze > requirements.txt
 pip install langgraph langchain_community
 pip install langchain-ollama langchain-qdrant
 pip install python-dotenv
 pip install fastapi uvicorn
 pip install qdrant_client langchain-core
-# URL Loder
+```
+
+### Document Processing
+```bash
 pip install --upgrade --quiet unstructured
 pip install IPython
+```
+
+### Web & Database
+```bash
 pip install WebSocket
 pip install sqlmodel
 pip install mysql-connector-python
 pip install alembic
-# crawl4AI
+pip install python-multipart  # for FastAPI
+```
+
+### Web Crawling
+```bash
 pip install crawl4ai
-<!-- Run the Setup Command -->
-crawl4ai-setup
+crawl4ai-setup  # Run the setup command
+```
 
-# dramatiq
+### Message Queue
+```bash
 pip install -U dramatiq[rabbitmq]
-<!-- dramatiq tasks.tasks -->
+# Access RabbitMQ dashboard: http://localhost:15672/#
+# Default credentials:
+# Username: guest
+# Password: guest
+```
 
+### Authentication & Security
+```bash
+pip install python-jose[cryptography] passlib
+pip install bcrypt
+# Generate secret key: openssl rand -hex 32
+```
 
-
-
-
-# Start Qdrant
+## Docker Services
+### Qdrant Vector Database
+```bash
 docker run -p 6333:6333 -p 6334:6334 -v "$(pwd)/qdrant_storage:/qdrant/storage:z" qdrant/qdrant
+```
 
+## Database Migrations
+```bash
+alembic init migrations  # Initialize alembic
+alembic revision --autogenerate -m "initial"
+alembic upgrade head
+alembic history
+alembic stamp head
+```
 
+## pip install pypdf python-docx python-pptx
 
-# Next release:
-Selenium URL Loader:
-Using Selenium allows us to load pages that require JavaScript to render.
+## Development
+```bash
+uvicorn chatbot1:app --reload  # Run server
+black .  # Format code
+```
 
+## Security Notes
+### JWT Authentication
+- Ensures authenticated access to WebSocket communication
+- Prevents unauthorized endpoint access
+- Uses secure signing algorithms (HS256, RS256)
 
-
-for chatroom
-# pip install python-jose[cryptography] passlib
-# pip install bcrypt
-
-
-1️⃣ python-jose[cryptography]
-Purpose: Handles JWT authentication (JSON Web Tokens) to secure WebSocket communication.
-
-jose (JavaScript Object Signing and Encryption) is a lightweight library to create and verify JWTs.
-The [cryptography] part is an extra dependency that ensures secure signing and verification of JWTs.
-💡 Why?
-
-Ensures that only authenticated users can access chat.
-Prevents unauthorized access to WebSocket endpoints.
-Uses secure algorithms (e.g., HS256, RS256) for token signing.
-2️⃣ passlib
-Purpose: Handles password hashing securely.
-
-Why not store plain text passwords? → That would be a security risk!
-passlib provides bcrypt, a strong hashing algorithm used to store passwords securely.
-💡 Why?
-
-Prevents password leaks from exposing raw passwords.
-bcrypt automatically adds a salt to protect against rainbow table attacks.
-Hashes passwords securely so that even if a database is compromised, the passwords remain safe.
-
-
-
-uvicorn chatbot1:app --reload
-# alembic init migrations (init alembic)
-pip install python-multipart # fastapi
-
-
-
-#remove pip install docling
-# remove pip install langchain-docling
-# remove fastembed
-https://ds4sd.github.io/docling/examples/rag_langchain/#rag
-#pip install sentence-transformers
-
-
-
-https://docs.crawl4ai.com/core/quickstart/ (crawl4ai)
-
-openssl rand -hex 32
-
-
-## migration
-# alembic revision --autogenerate -m "initial"
-# alembic upgrade head
-# alembic history
-# alembic stamp head
-
-
-
-# pip install black format code
-black .
+### Password Security
+- Uses bcrypt for secure password hashing
+- Includes automatic salt generation
+- Protects against rainbow table attacks
