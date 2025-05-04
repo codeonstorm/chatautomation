@@ -73,6 +73,11 @@ import {
 
 import {getFileList} from "@/services/filemanager"
 import {convertSize} from "@/lib/utils"
+import { getScrapedUrls, startWebCrawler } from "@/services/scrapedurls";
+import { ScrapedUrls } from "@/types/scrapedurls";
+import { useAppDispatch, useAppSelector } from "@/redux/store/hooks";
+import { addUrl } from "@/redux/store/features/scrapedurl/scrapedurl";
+import { RootState } from "@/redux/store/store";
 
 interface Progress {
   [key: string]: number;
@@ -81,6 +86,10 @@ interface Progress {
 export default function ChatbotTrainingPage() {
   const params = useParams();
   const router = useRouter();
+
+  // urls
+  const dispatch = useAppDispatch();
+  const webUrls:ScrapedUrls[] = useAppSelector((state: RootState) => state.scrapedurls);
   // const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false);
   const [chatbot, setChatbot] = useState<{ id: string; name: string } | null>(
@@ -156,6 +165,19 @@ export default function ChatbotTrainingPage() {
     fetchFileList();  // Call the async function
   }, [params.id, uploading]);
 
+
+  
+  // urls
+  useEffect(() => {
+    if (!isLoading) {
+      const scrapedUrls = async () => {
+        const urls: ScrapedUrls[] = await getScrapedUrls();
+        dispatch(addUrl(urls));
+      };
+      scrapedUrls();
+    }
+  }, [params.id]);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -181,10 +203,11 @@ export default function ChatbotTrainingPage() {
     // })
   };
 
-  const handleUrlAdd = () => {
+  const handleUrlAdd = async () => {
     if (!url) return;
 
     // Validate URL
+    await startWebCrawler(url);
     try {
       new URL(url);
     } catch (e) {
@@ -258,6 +281,8 @@ export default function ChatbotTrainingPage() {
   if (!chatbot) {
     return <div className="p-8">Loading...</div>;
   }
+
+  
 
   return (
       <SidebarInset>
@@ -446,6 +471,81 @@ export default function ChatbotTrainingPage() {
                                 Enter the full URL including https:// or http://
                               </p>
                             </div>
+                            <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>URL</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Created At</TableHead>
+                                <TableHead>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {trainingData.length === 0 ? (
+                                <TableRow>
+                                  <TableCell
+                                    colSpan={6}
+                                    className="text-center py-4 text-muted-foreground"
+                                  >
+                                    No training data available
+                                  </TableCell>
+                                </TableRow>
+                              ) : (
+                                webUrls.map((item, i) => (
+                                  <TableRow key={item.id}>
+                                    <TableCell>
+                                      <div className="flex items-center gap-2">
+                                        {getFileIcon("website")}
+                                        <span className="truncate max-w-[250px]">
+                                          {item.url}
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>{item.status}</TableCell>
+                                    <TableCell>{item.updated_at}</TableCell>
+                                    <TableCell>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-500 hover:text-red-700"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                              Are you sure?
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              This will remove this item from
+                                              your training data. This action
+                                              cannot be undone.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>
+                                              Cancel
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() =>
+                                                handleDelete(item.name)
+                                              }
+                                              className="bg-red-500 hover:bg-red-700"
+                                            >
+                                              Delete
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              )}
+                            </TableBody>
+                          </Table>
                           </div>
                         </CardContent>
                       </Card>

@@ -8,9 +8,10 @@ from app.api_v1.routes import (
     chatbots,
     domains,
     resumable,
+    webscraper,
     datasets,
     ingestion,
-    functions
+    functions,
 )
 
 api_router = APIRouter()
@@ -21,6 +22,7 @@ api_router.include_router(services.router)
 api_router.include_router(chatbots.router)
 api_router.include_router(domains.router)
 api_router.include_router(resumable.router)
+api_router.include_router(webscraper.router)
 api_router.include_router(ingestion.router)
 api_router.include_router(datasets.router)
 api_router.include_router(functions.router)

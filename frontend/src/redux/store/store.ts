@@ -3,6 +3,7 @@ import userReducer from './features/user/user'
 import domainReducer from './features/domain/domain'
 import chatbotReducer from './features/chatbot/chatbot'
 import chatUserReducer from './features/chathistory/chathistory'
+import scrapedUrlReducer from './features/scrapedurl/scrapedurl'
 
 export const makeStore = () => {
   return configureStore({
@@ -10,7 +11,8 @@ export const makeStore = () => {
       user: userReducer,
       domains: domainReducer,
       chatbots: chatbotReducer,
-      chatuser: chatUserReducer
+      chatuser: chatUserReducer,
+      scrapedurls: scrapedUrlReducer,
     },
   })
 }

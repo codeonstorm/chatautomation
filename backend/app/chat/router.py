@@ -132,7 +132,9 @@ async def websocket_endpoint(
         raise HTTPException(status_code=404, detail="Chatbot not found")
     
     user = session.exec(
-        select(KnownUser).where(KnownUser.session_uuid == token)
+        select(KnownUser)
+        .where(KnownUser.session_uuid == token)
+        .where(KnownUser.chatbot_uuid == UUID(chatbot_uuid))
     ).first()
 
     if not user:

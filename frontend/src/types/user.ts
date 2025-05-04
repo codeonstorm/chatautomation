@@ -1,3 +1,5 @@
+import { Service } from './service'
+
 export interface User {
   id: number
   email: string
@@ -7,4 +9,5 @@ export interface User {
   last_login: string | null,
   verified: boolean,
   created_at: string
+  service: Service | null
 }

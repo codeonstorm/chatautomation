@@ -17,6 +17,17 @@ pip install WebSocket
 pip install sqlmodel
 pip install mysql-connector-python
 pip install alembic
+# crawl4AI
+pip install crawl4ai
+<!-- Run the Setup Command -->
+crawl4ai-setup
+
+# dramatiq
+pip install -U dramatiq[rabbitmq]
+<!-- dramatiq tasks.tasks -->
+
+
+
 
 
 # Start Qdrant

@@ -52,11 +52,11 @@ import { useEffect, useState } from "react";
 
 // This is sample data.
 const data = {
-  user: {
-    name: "Ankit",
-    email: "a@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  // user: {
+  //   name: "Ankit",
+  //   email: "a@example.com",
+  //   avatar: "/avatars/shadcn.jpg",
+  // },
   teams: [
     {
       name: "AI Chatbot Builder",
@@ -219,7 +219,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser/>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

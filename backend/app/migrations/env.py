@@ -23,6 +23,8 @@ from app.models.domain import Domain
 from app.models.dataset import Dataset
 from app.models.function import Function
 from app.models.chathistory import ChatHistory, KnownUser
+from app.models.scrapedurls import ScrapedUrls
+from app.models.taskstatus import TaskStatus
 
 load_dotenv()
 
