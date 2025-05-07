@@ -19,13 +19,16 @@ import { addDomain } from "@/services/domain"
 import { useAppDispatch } from "@/redux/store/hooks"
 import { add } from "@/redux/store/features/domain/domain"
 import { Domain } from "@/types/domain"
+import { useAuth } from "@/context/auth-context"
  
 export function AddDomainDialog() {
+  const { user } = useAuth();
   const [domainName, setDomainName] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const dispatch = useAppDispatch()
+  
 
   const handleDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDomainName(e.target.value)
@@ -43,7 +46,10 @@ export function AddDomainDialog() {
     setError(null)
     
     try {
-      const domain: Domain = await addDomain(domainName)
+      if (!user) {
+        return
+      }
+      const domain: Domain = await addDomain(user.services[0].id, domainName)
       dispatch(add(domain))
 
       setOpen(false)

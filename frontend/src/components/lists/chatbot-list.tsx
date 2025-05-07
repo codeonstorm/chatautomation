@@ -51,7 +51,12 @@ import { RootState } from "@/redux/store/store";
 import Link from "next/link";
 import { Chatbot } from "@/types/chatbot";
 import { Domain } from "@/types/domain";
-import { createChatbot, getChatbots, updateChatbot, deleteChatbot } from "@/services/chatbot";
+import {
+  createChatbot,
+  getChatbots,
+  updateChatbot,
+  deleteChatbot,
+} from "@/services/chatbot";
 import { useAppDispatch } from "@/redux/store/hooks";
 import {
   addChatbots,
@@ -59,25 +64,25 @@ import {
   removeChatbot,
 } from "@/redux/store/features/chatbot/chatbot";
 import { useAuth } from "@/context/auth-context";
+import { User } from "@/types/user";
 
-function base64EncodeUnicode(str:string) {
+function base64EncodeUnicode(str: string) {
   const encoded = btoa(str);
-  console.log(encoded); 
-  return encoded
+  return encoded;
 }
 
-function base64DecodeUnicode(encodedstr:string) {
+function base64DecodeUnicode(encodedstr: string) {
   const decoded = atob(encodedstr);
   console.log(decoded);
-  return decoded
+  return decoded;
 }
 
 export function ChatbotList() {
   // const [isAuthenticated, setIsLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingChatbot, setEditingChatbot] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -98,31 +103,32 @@ export function ChatbotList() {
 
   const fetchedRef = useRef(false);
   useEffect(() => {
+    if (!(user && user.services)) return;
     if (chatbots.length || fetchedRef.current) return;
     fetchedRef.current = true;
     const chatbot = async () => {
-      const chatbots: Chatbot[] = await getChatbots();
+      const chatbots: Chatbot[] = await getChatbots(user.services[0].id);
       dispatch(addChatbots(chatbots));
     };
     chatbot();
-  }, []);
+  }, [user]);
 
   const onSubmit = async (chatbot: Chatbot) => {
+    if (!user) return;
+    chatbot.service_id = user.services[0].id;
     try {
-      if(editingChatbot && chatbot) {
+      if (editingChatbot && chatbot) {
         chatbot.uuid = editingChatbot;
-        chatbot.status = 'enabled';
+        chatbot.status = "enabled";
         const response: Chatbot = await updateChatbot(chatbot);
         dispatch(editChatbot(response));
         form.reset();
-        console.log('edit', editingChatbot , chatbot);
-
+        console.log("edit", editingChatbot, chatbot);
       } else {
-        // const response: Chatbot = await createChatbot(chatbot);
-        // dispatch(addChatbots([response]));
-        // form.reset();
-        console.log('new', editingChatbot , chatbot);
-
+        const response: Chatbot = await createChatbot(chatbot);
+        dispatch(addChatbots([response]));
+        form.reset();
+        console.log("new", editingChatbot, chatbot);
       }
       setIsDialogOpen(false);
       setEditingChatbot(null);
@@ -134,7 +140,6 @@ export function ChatbotList() {
   };
 
   const handleEdit = (uuid: string) => {
-
     const chatbot = chatbots.find((bot) => bot.uuid === uuid);
     if (!chatbot) return;
     form.reset({
@@ -152,9 +157,13 @@ export function ChatbotList() {
   };
 
   const handleDelete = async (uuid: string) => {
+    if (!user) {
+      console.error("Error:", "invalid service");
+      return;
+    }
     setIsLoading(true);
     try {
-      const chatbots: Chatbot = await deleteChatbot(uuid);
+      const chatbots: Chatbot = await deleteChatbot(user.services[0].id, uuid);
       dispatch(removeChatbot(uuid));
     } catch (error) {
       console.error("Error:", error);
@@ -198,14 +207,23 @@ export function ChatbotList() {
           {chatbots.map((bot) => (
             <TableRow key={bot.uuid}>
               <TableCell>
-                <Link href={`http://127.0.0.1:8000/chat/${base64EncodeUnicode(bot.uuid + '|0b88191e-b059-42c6-bc89-8156f4943ab5')}`} target="_bank">{bot.name}</Link>
+                <Link
+                  href={`http://127.0.0.1:8000/chat/${base64EncodeUnicode(
+                    bot.uuid + "|0b88191e-b059-42c6-bc89-8156f4943ab5"
+                  )}`}
+                  target="_bank"
+                >
+                  {bot.name}
+                </Link>
               </TableCell>
               <TableCell>
                 <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-800">
                   Active
                 </span>
               </TableCell>
-              <TableCell>{bot.created_at?.replace("T", " ").replaceAll("-", " ")}</TableCell>
+              <TableCell>
+                {bot.created_at?.replace("T", " ").replaceAll("-", " ")}
+              </TableCell>
               <TableCell>
                 <div className="flex space-x-2">
                   <Button

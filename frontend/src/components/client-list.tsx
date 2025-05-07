@@ -45,10 +45,10 @@ export function ClientList({ clients, selectedClientId, onClientSelect }: Client
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium truncate">{client.user_data.name}</h4>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">{client.latest_msg.timestamp && client.latest_msg.timestamp.replace("T", " ")}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{client.latest_msg && client.latest_msg.timestamp.replace("T", " ")}</span>
             </div>
             <p className="text-xs text-muted-foreground truncate">{client.user_data.email}</p>
-            <p className="text-xs truncate mt-1">{client.latest_msg.msg}</p>
+            <p className="text-xs truncate mt-1">{client.latest_msg && client.latest_msg.msg}</p>
           </div>
           {/* {client.unread > 0 && (
             <Badge variant="default" className="ml-auto">

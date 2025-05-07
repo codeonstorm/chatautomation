@@ -247,6 +247,7 @@ export function ChatHistory({ clientId }: ChatHistoryProps) {
     }
 
     fetchChatMessages()
+    console.log(messages)
   }
   , [clientId])
 

@@ -22,14 +22,15 @@ export default function ChatHistoryPage({ params }: { params: Promise<{ id: stri
   const { id } = React.use(params)
   const dispatch = useAppDispatch()
   const fetchedRef = useRef(false)
-  const chat_clients: ChatUser[] = useSelector((state: RootState) => state.chatuser)
+  const chat_clients: ChatUser[] = useSelector((state: RootState) => state.chatuser[id] || [])
 
   useEffect(() => {
     if (!id || fetchedRef.current) return
     fetchedRef.current = true
     const chatuser = async () => {
+      dispatch(addChatUsers({ chatbot_uuid: id, users: [] }))
       const chatusersdata: ChatUser[] = await getChatUsers(id)
-      dispatch(addChatUsers(chatusersdata))
+      dispatch(addChatUsers({ chatbot_uuid: id, users: chatusersdata }))
     }
     chatuser()
   }, [dispatch, id])

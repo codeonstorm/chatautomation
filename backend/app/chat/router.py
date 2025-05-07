@@ -413,7 +413,7 @@ async def read_chat_history(
     
     knownUserArr = []
     for user in user:
-        chathistory = session.exec(
+        latest_chat = session.exec(
             select(ChatHistory).where(ChatHistory.chatuser == user.uuid)
             .order_by(ChatHistory.timestamp.desc())
             .limit(1)
@@ -424,22 +424,22 @@ async def read_chat_history(
 
         print("\n\n\n\nuser_data ankit: ", user_data, end="\n\n")
         knownUserArr.append(
-        KnownUserRead(
-            uuid=user.uuid,
-            session_uuid=user.session_uuid,
-            domain_uuid=user.domain_uuid,           
-            chatbot_uuid=user.chatbot_uuid,
-            user_data=user_data,
-            timestamp=user.timestamp,
-            latest_msg=ChatHistoryRead(
-                id=chathistory.id,
-                chatuser=chathistory.chatuser,
-                type=chathistory.type.value,
-                msg=chathistory.msg,
-                feedback=chathistory.feedback.value if chathistory.feedback else None,
-                timestamp=chathistory.timestamp
+            KnownUserRead(
+                uuid=user.uuid,
+                session_uuid=user.session_uuid,
+                domain_uuid=user.domain_uuid,
+                chatbot_uuid=user.chatbot_uuid,
+                user_data=user_data,
+                timestamp=user.timestamp,
+                latest_msg=ChatHistoryRead(
+                    id=latest_chat.id,
+                    chatuser=latest_chat.chatuser,
+                    type=latest_chat.type.value,
+                    msg=latest_chat.msg,
+                    feedback=latest_chat.feedback.value if latest_chat.feedback else None,
+                    timestamp=latest_chat.timestamp,
+                ) if latest_chat else None
             )
-        )
         )
     return knownUserArr 
 
@@ -508,5 +508,5 @@ async def chat_users(
 
     print("\n\n\n\n\n\n\n\n\nchat_history: ", chat_history, end="\n\n") 
     if not chat_history:
-        raise HTTPException(status_code=404, detail="Chat history not found")
+        return []
     return chat_history 

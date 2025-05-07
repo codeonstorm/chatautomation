@@ -10,25 +10,38 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Laptop, Smartphone, Tablet, ArrowLeft, ExternalLink, Maximize2, Minimize2 } from "lucide-react"
+import { Chatbot } from "@/types/chatbot"
+import { RootState } from "@/redux/store/store"
+import { useSelector } from "react-redux"
+import { getChatbot } from "@/services/chatbot"
+import { useAuth } from "@/context/auth-context"
 
 export default function ChatbotPreviewPage() {
   const params = useParams()
   const router = useRouter()
-  const [chatbot, setChatbot] = useState<{ id: string; name: string; primary_color: string } | null>(null)
+  const [chatbot, setChatbot] = useState<Chatbot | null>(null)
   const [device, setDevice] = useState<"mobile" | "tablet" | "desktop">("desktop")
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait")
   const [darkMode, setDarkMode] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const [theme, setTheme] = useState<"light" | "dark" | "system">("light")
+  const { user } = useAuth()
+
 
   useEffect(() => {
-    // In a real app, fetch the chatbot details
-    setChatbot({
-      id: params.id as string,
-      name: `Chatbot #${params.id}`,
-      primary_color: "#4a56e2",
-    })
-  }, [params.id])
+    if (!user || !params.id) {
+      console.log("Error: ", "Invalid user")
+      return
+    }
+    const chatbot_uuid = params.id as string;
+    const fetchChatbot = async (serviceid: number, chatbot_uuid: string) => {
+      const chatbot:Chatbot = await getChatbot(serviceid, chatbot_uuid);
+      setChatbot(chatbot);
+    };
+
+    fetchChatbot(user.services[0].id, chatbot_uuid);
+
+  }, [user, params.id])
 
   const getDeviceStyles = () => {
     switch (device) {
@@ -83,6 +96,11 @@ export default function ChatbotPreviewPage() {
                 <div>
                   <Label className="text-sm text-muted-foreground">Name</Label>
                   <p className="font-medium">{chatbot.name}</p>
+                    <p className="font-medium">
+                    {chatbot.description.length > 100
+                      ? `${chatbot.description.substring(0, 100)}...`
+                      : chatbot.description}
+                    </p>
                 </div>
                 <div>
                   <Label className="text-sm text-muted-foreground">Primary Color</Label>

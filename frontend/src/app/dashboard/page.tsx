@@ -35,6 +35,7 @@ import { getDomains } from "@/services/domain";
 import { Domain } from "@/types/domain";
 import { useAppDispatch } from "@/redux/store/hooks";
 import { addDomains } from "@/redux/store/features/domain/domain";
+import { addChatUsers } from "@/redux/store/features/chathistory/chathistory";
 
 export default function Page() {
   const { isAuthenticated, isLoading } = useAuth();

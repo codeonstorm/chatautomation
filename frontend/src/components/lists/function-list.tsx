@@ -53,6 +53,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useAuth } from "@/context/auth-context";
 
 export const StatusEnum = z.enum(["enabled", "disabled", "deleted"]);
 export const IntentEnum = z.enum(["weather check", "Appointment", "check Inventory"]);
@@ -95,6 +96,7 @@ const functions = [
 ];
 
 export function FunctionList() {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFunction, setEditingFunction] = useState<string | null>(null);

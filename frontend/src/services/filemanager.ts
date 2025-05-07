@@ -12,9 +12,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
  
 // Get current user
-export async function getFileList(): Promise<fileMetaType[]> {
+export async function getFileList(serviceid: number): Promise<fileMetaType[]> {
   const accessToken = localStorage.getItem("accessToken")
-  const response = await fetch(`${API_URL}/1/filemanager/files`, {
+  const response = await fetch(`${API_URL}/${serviceid}/filemanager/files`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

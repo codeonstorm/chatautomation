@@ -158,7 +158,7 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const domains:Domain[] = useSelector((state: RootState) => state.domains);
 
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const dispatch = useAppDispatch();
 
@@ -167,9 +167,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         if (!isAuthenticated) {
           router.push("/login");
         }
+
+        if (!user) {
+          router.push("/login");
+        }
   
         const domains = async () => {
-          const domains: Domain[] = await getDomains();
+          if (!user) {
+            router.push("/login");
+            return
+          }
+          const domains: Domain[] = await getDomains(user.services[0].id);
           dispatch(addDomains(domains));
         };
   

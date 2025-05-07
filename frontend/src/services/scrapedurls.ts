@@ -12,9 +12,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
  
-export async function getScrapedUrls(): Promise<ScrapedUrls[]> {
+export async function getScrapedUrls(serviceid: number): Promise<ScrapedUrls[]> {
   const accessToken = localStorage.getItem("accessToken")
-  const response = await fetch(`${API_URL}/1/webscraper`, {
+  const response = await fetch(`${API_URL}/${serviceid}/webscraper`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -23,9 +23,9 @@ export async function getScrapedUrls(): Promise<ScrapedUrls[]> {
 }
 
 
-export async function startWebCrawler(url: string): Promise<undefined> {
+export async function startWebCrawler(serviceid: number, url: string): Promise<undefined> {
   const accessToken = localStorage.getItem("accessToken")
-  const response = await fetch(`${API_URL}/1/webscraper?url=${url}`, {
+  const response = await fetch(`${API_URL}/${serviceid}/webscraper?url=${url}`, {
     method: 'POST',
     body: JSON.stringify({
       url: url

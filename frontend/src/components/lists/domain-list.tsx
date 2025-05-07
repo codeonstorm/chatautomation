@@ -20,27 +20,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store/store";
 import { useAppDispatch } from "@/redux/store/hooks";
 import { remove } from "@/redux/store/features/domain/domain";
 import { deleteDomains } from "@/services/domain";
+import { useAuth } from "@/context/auth-context";
 
 export function DomainList() {
-  const dispatch = useAppDispatch()
-  const domains:Domain[] = useSelector((state: RootState) => state.domains);
-
-  const deleteDomainHandler = async (uuid: string) => { 
-
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const domains: Domain[] = useSelector((state: RootState) => state.domains);
+  const deleteDomainHandler = async (uuid: string) => {
     try {
-      const response: DomainDeleteResponse = await deleteDomains(uuid)
-        // Remove the domain from the Redux store
-        dispatch(remove(uuid))
+      if (!user) {
+        console.log("Error: ", "Invalid user")
+        return
+      }
+      const response: DomainDeleteResponse = await deleteDomains(user.services[0].id, uuid);
+      // Remove the domain from the Redux store
+      dispatch(remove(uuid));
     } catch (error) {
       console.error("Error deleting domain:", error);
     }
-  }
-
+  };
 
   return (
     <div>
