@@ -16,6 +16,7 @@ from sqlmodel import select
 from sqlmodel import Session
 from app.core.database import get_session
 from app.models.scrapedurls import ScrapedUrls
+from app.models.taskstatus import TaskStatus, TaskStageEnum
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -24,6 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 async def run_advanced_crawler(
     service_id: int,
+    taskid: int,
     urls: list[str],
     # max_depth: int = 2,
     # max_pages: int = 25,
@@ -103,6 +105,16 @@ async def run_advanced_crawler(
             db.commit()
             db.refresh(status)
 
+            statement = select(TaskStatus).where(TaskStatus.id == taskid)
+            task = db.exec(statement)
+            task = task.one()
+
+            task.progess = task.progess + 1
+            task.status = TaskStageEnum.in_progress
+            db.add(task)
+            db.commit()
+            db.refresh(task)
+
             path = os.path.join(UPLOAD_DIR, str(status.id) + '.txt')
             with open(path, 'a', encoding='utf-8') as f:
                 f.write(f"\nURL: {result.url}\n")
@@ -113,6 +125,14 @@ async def run_advanced_crawler(
     # Analyze the results
     print(f"Crawled {len(results)} high-value pages")
     print(f"Average score: {sum(r.metadata.get('score', 0) for r in results) / len(results):.2f}")
+
+    statement = select(TaskStatus).where(TaskStatus.id == taskid)
+    task = db.exec(statement)
+    task = task.one()
+
+    task.status = TaskStageEnum.completed
+    db.add(task)
+    db.commit()
 
     # Group by depth
     depth_counts = {}
@@ -134,11 +154,13 @@ async def run_advanced_crawler(
 
  
 if __name__ == "__main__":
+    print(sys.argv)
     serviceid = sys.argv[1] if len(sys.argv) > 1 else None
-    url = sys.argv[2] if len(sys.argv) > 2 else None
-    print(f"Service ID: {serviceid}, URL: {url}")
-    if not serviceid or not url:
-        print("Usage: python crawler.py <service_id> <url>")
-        sys.exit(1)
-    asyncio.run(run_advanced_crawler(service_id=serviceid, urls=[url]))
+    taskid = sys.argv[2] if len(sys.argv) > 2 else None
+    url = sys.argv[3] if len(sys.argv) > 3 else None
+    print(f"Service ID: {serviceid}, taskid: {taskid} URL: {url}")
+    if serviceid and taskid and url:
+        asyncio.run(run_advanced_crawler(service_id=serviceid, taskid=taskid, urls=[url]))
+    else:
+        print('failed')
 

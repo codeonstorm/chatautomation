@@ -57,6 +57,7 @@ import {
   File,
   FileSpreadsheet,
   FileIcon as FilePresentation,
+  Activity,
 } from "lucide-react";
 import {
   SidebarInset,
@@ -73,8 +74,8 @@ import {
 
 import { getFileList } from "@/services/filemanager";
 import { convertSize } from "@/lib/utils";
-import { getScrapedUrls, startWebCrawler } from "@/services/scrapedurls";
-import { ScrapedUrls } from "@/types/scrapedurls";
+import { getScrapedUrls, getWebCrawProgress, startWebCrawler } from "@/services/scrapedurls";
+import { ScrapedUrls, WebCrawProgress } from "@/types/scrapedurls";
 import { useAppDispatch, useAppSelector } from "@/redux/store/hooks";
 import { addUrl } from "@/redux/store/features/scrapedurl/scrapedurl";
 import { RootState } from "@/redux/store/store";
@@ -97,12 +98,11 @@ export default function ChatbotTrainingPage() {
   );
   // const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false);
-  const [chatbot, setChatbot] = useState<Chatbot | null>(
-    null
-  );
+  const [chatbot, setChatbot] = useState<Chatbot | null>(null);
   const [url, setUrl] = useState("");
   const [trainingData, setTrainingData] = useState<fileMetaType[]>([]);
   const { user } = useAuth();
+  const [crawlProgress, setcrawlProgress] = useState<WebCrawProgress[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -114,7 +114,10 @@ export default function ChatbotTrainingPage() {
       return bot;
     };
     (async () => {
-      const chatbot: Chatbot = await fetchchatbot(user.services[0].id, chatbot_uuid);
+      const chatbot: Chatbot = await fetchchatbot(
+        user.services[0].id,
+        chatbot_uuid
+      );
       setChatbot(chatbot);
     })();
   }, [user, params.id]);
@@ -165,9 +168,9 @@ export default function ChatbotTrainingPage() {
   }, [chatbot]);
 
   useEffect(() => {
-    console.log(user)
+    console.log(user);
     if (!user) {
-      return 
+      return;
     }
 
     const fetchFileList = async (serviceid: number) => {
@@ -185,14 +188,74 @@ export default function ChatbotTrainingPage() {
 
   // urls
   useEffect(() => {
+    const scrapedUrls = async (serviceid: number) => {
+      const urls: ScrapedUrls[] = await getScrapedUrls(serviceid);
+      dispatch(addUrl(urls));
+    };
+
+    const fetchWebCrawProgress = async (serviceid: number) => {
+      const progessList: WebCrawProgress[] = await getWebCrawProgress(serviceid);
+      setcrawlProgress(progessList)
+    };
+
     if (!isLoading && user) {
-      const scrapedUrls = async (serviceid: number) => {
-        const urls: ScrapedUrls[] = await getScrapedUrls(serviceid);
-        dispatch(addUrl(urls));
-      };
       scrapedUrls(user.services[0].id);
+      fetchWebCrawProgress(user.services[0].id);
+      setInterval(async () => {
+        fetchWebCrawProgress(user.services[0].id);
+      }, 5000);
     }
   }, [user, params.id]);
+
+  const handleUrlAdd = async (serviceid: number, url: string) => {
+    if (!url) return;
+
+    const startCrawl = async (serviceid: number, url: string) => {
+      await startWebCrawler(serviceid, url);
+    };
+    const fetchWebCrawProgress = async (serviceid: number) => {
+      const progessList: WebCrawProgress[] = await getWebCrawProgress(serviceid);
+      setcrawlProgress(progessList)
+    };
+    startCrawl(serviceid, url);
+    fetchWebCrawProgress(serviceid);
+    try {
+      new URL(url);
+    } catch (e) {
+      // toast({
+      //   variant: "destructive",
+      //   title: "Invalid URL",
+      //   description: "Please enter a valid URL.",
+      // })
+      return;
+    }
+
+    const handleUrlDelete = async (serviceid: number, urlid: number) => {
+      const deleteUrl = async () => {
+        // await
+      };
+      // deleteUrl();
+    };
+
+
+    // Add URL to training data
+    // setTrainingData([
+    //   ...trainingData,
+    //   {
+    //     id: Date.now(),
+    //     name: url,
+    //     type: "Website",
+    //     source: "URL",
+    //     dateAdded: new Date().toISOString().split("T")[0],
+    //   },
+    // ]);
+
+    // toast({
+    //   title: "URL added",
+    //   description: "The URL has been added for training.",
+    // })
+    // setUrl("");
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -219,43 +282,9 @@ export default function ChatbotTrainingPage() {
     // })
   };
 
-  const handleUrlAdd = async () => {
-    if (!url) return;
-
-    // Validate URL
-    // await startWebCrawler(serviceid, url);
-    try {
-      new URL(url);
-    } catch (e) {
-      // toast({
-      //   variant: "destructive",
-      //   title: "Invalid URL",
-      //   description: "Please enter a valid URL.",
-      // })
-      return;
-    }
-
-    // Add URL to training data
-    setTrainingData([
-      ...trainingData,
-      {
-        id: Date.now(),
-        name: url,
-        type: "Website",
-        source: "URL",
-        dateAdded: new Date().toISOString().split("T")[0],
-      },
-    ]);
-
-    // toast({
-    //   title: "URL added",
-    //   description: "The URL has been added for training.",
-    // })
-    setUrl("");
-  };
-
-  const handleDelete = (name: string) => {
-    setTrainingData(trainingData.filter((item) => item.name !== name));
+  const handleDelete = (id: number) => {
+    console.log(id);
+    // setTrainingData(trainingData.filter((item) => item.name !== name));
     // toast({
     //   title: "Item removed",
     //   description: "The training data has been removed.",
@@ -377,8 +406,7 @@ export default function ChatbotTrainingPage() {
                       {chatbot.name} - Training
                     </h1>
                     <p className="text-muted-foreground">
-                      Add training data to improve your chatbot's knowledge and
-                      responses.
+                      Add training data to improve your chatbot's knowledge.
                     </p>
                   </div>
                   {/* <Button onClick={() => router.back()} variant="outline">
@@ -460,16 +488,16 @@ export default function ChatbotTrainingPage() {
                   <TabsContent value="url">
                     <Card>
                       <CardHeader>
-                        <CardTitle>Add URLs</CardTitle>
-                        <CardDescription>
+                        <CardTitle>Manage Web URLs</CardTitle>
+                        {/* <CardDescription>
                           Add website or blog URLs to train your chatbot with
                           online content.
-                        </CardDescription>
+                        </CardDescription> */}
                       </CardHeader>
                       <CardContent>
                         <div className="grid w-full items-center gap-4">
                           <div className="flex flex-col space-y-1.5">
-                            <Label htmlFor="url">Website URL</Label>
+                            {/* <Label htmlFor="url">Website URL</Label> */}
                             <div className="flex items-center gap-2">
                               <Input
                                 id="url"
@@ -477,12 +505,57 @@ export default function ChatbotTrainingPage() {
                                 value={url}
                                 onChange={(e) => setUrl(e.target.value)}
                               />
-                              <Button onClick={handleUrlAdd}>Add</Button>
+                              <Button
+                                onClick={() =>
+                                  user && handleUrlAdd(user.services[0].id, url)
+                                }
+                              >
+                                Add
+                              </Button>
                             </div>
                             <p className="text-sm text-muted-foreground">
                               Enter the full URL including https:// or http://
                             </p>
                           </div>
+                          {crawlProgress.length > 0 && (
+                            <div className="flex flex-row flex-wrap">
+                              {crawlProgress.map((progress, index) => (
+                              <Card key={progress.id} style={{ width: "20%", margin: "10px" }}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                  Active Web Crawl Jobs
+                                </CardTitle>
+                                <div className="flex items-center gap-2">
+                                  <div className="relative">
+                                    {progress.status != "completed" ? (
+                                      <div className="w-4 h-4 border-2 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+                                    ) : 
+                                    <span className="text-green-500 font-bold cursor-pointer">✔</span>
+                                    }
+                                  </div>
+                                </div>
+                                </CardHeader>
+                                <CardContent>
+                                <p className="text-xs text-muted-foreground">
+                                  <b>Domain: </b>
+                                  {progress.meta_data && (() => {
+                                    var meta = progress.meta_data.replace(/'/g, '"').replace(/\(\)/g, '[]'); 
+                                    meta = JSON.parse(meta)
+                                    const url = meta.url;
+                                    const urlObj = new URL(url)
+                                    return urlObj.hostname;
+                                  })()}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  <b>Status: </b>{progress.status.charAt(0).toUpperCase() + progress.status.slice(1).toLowerCase().replace('_', ' ')}
+                                </p>
+                                <div className="text-2xl font-bold">{progress.progess}</div>
+                                </CardContent>
+                              </Card>
+                              ))}
+                            </div>
+                          )}
+ 
                           <Table>
                             <TableHeader>
                               <TableRow>
@@ -504,7 +577,7 @@ export default function ChatbotTrainingPage() {
                                 </TableRow>
                               ) : (
                                 webUrls.map((item, i) => (
-                                  <TableRow key={item.id}>
+                                  <TableRow key={item.id} data-id={item.id}>
                                     <TableCell>
                                       <div className="flex items-center gap-2">
                                         {getFileIcon("website")}
@@ -543,7 +616,11 @@ export default function ChatbotTrainingPage() {
                                             </AlertDialogCancel>
                                             <AlertDialogAction
                                               onClick={() =>
-                                                handleDelete(item.name)
+                                                user &&
+                                                handleUrlDelete(
+                                                  user.services[0].id,
+                                                  item.id
+                                                )
                                               }
                                               className="bg-red-500 hover:bg-red-700"
                                             >

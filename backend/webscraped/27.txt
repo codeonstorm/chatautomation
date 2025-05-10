@@ -1,0 +1,87 @@
+
+URL: https://www.rabbitmq.com/
+Depth: 0
+[Skip to main content](https://www.rabbitmq.com/#__docusaurus_skipToContent_fallback)
+[ ![RabbitMQ](https://www.rabbitmq.com/img/rabbitmq-logo-with-name.svg)![RabbitMQ](https://www.rabbitmq.com/img/rabbitmq-logo-with-name.svg) ](https://www.rabbitmq.com/)[Getting Started](https://www.rabbitmq.com/tutorials)[Docs](https://www.rabbitmq.com/docs)[Blog](https://www.rabbitmq.com/blog)[Support](https://www.rabbitmq.com/contact)
+[4.1](https://www.rabbitmq.com/docs)
+  * **Release series**
+  * [Next](https://www.rabbitmq.com/docs/next)
+  * [4.1](https://www.rabbitmq.com/docs)
+  * [4.0](https://www.rabbitmq.com/docs/4.0)
+  * [3.13](https://www.rabbitmq.com/docs/3.13)
+  * [3.12](https://v3-12.rabbitmq.com/documentation.html)
+  * [Release Information](https://www.rabbitmq.com/release-information)
+
+
+Search
+# RabbitMQ
+One broker to queue them all
+[Getting Started](https://www.rabbitmq.com/tutorials)
+# Why RabbitMQ?
+RabbitMQ is a reliable and mature messaging and streaming broker, which is easy to deploy on cloud environments, on-premises, and on your local machine. It is currently used by millions worldwide.
+## Interoperable
+RabbitMQ [supports several open standard protocols](https://www.rabbitmq.com/docs/protocols), including AMQP 1.0 and MQTT 5.0. There are multiple client libraries available, which can be used with your programming language of choice, just pick one. No vendor lock-in!
+## Flexible
+RabbitMQ provides many options you can combine to define how your messages go from the publisher to one or many consumers. [Routing](https://www.rabbitmq.com/tutorials/tutorial-four-python), [filtering](https://www.rabbitmq.com/tutorials/amqp-concepts#exchange-topic), [streaming](https://www.rabbitmq.com/docs/streams), [federation](https://www.rabbitmq.com/docs/federation), and so on, you name it.
+## Reliable
+With the ability to [acknowledge message delivery](https://www.rabbitmq.com/docs/reliability) and to [replicate messages across a cluster](https://www.rabbitmq.com/docs/quorum-queues), you can ensure your messages are safe with RabbitMQ.
+# Examples of common use cases
+Here are a few common use cases we hear about from the community or our customers. This should help you better understand what RabbitMQ is and how it can help.
+  * Decoupling services
+  * RPC
+  * Streaming
+  * IoT
+
+
+## Decoupling interconnected services
+You have a backend service that needs to send notifications to end users. There are two notification channels: emails and push notifications for the mobile application.
+The backend publishes the notification to two queues, one for each channel. Programs that manage emails and push notification subscribe to the queue they are interested in and handle notifications as soon as they arrive.
+**➡ Benefits**
+  * RabbitMQ absorbs the load spike.
+  * You can do some maintenance on the notification managers without interrupting the whole service.
+
+
+## Remote Procedure Call
+You own a concert hall. Tickets for the shows are sold on multiple websites and physical kiosks. Orders from all channels must go through a complex process to determine if a customer effectively get their tickets, depending on availability. The website or kiosk expect to get an answer for the order in minimal time.
+Orders are published to a queue in RabbitMQ with a correlation ID. The caller that pushed the order then subscribes to another queue and waits for an answer with that same correlation ID.
+To achieve low latency, a [classic queue](https://www.rabbitmq.com/docs/classic-queues) is a good fit here but it is at the expense of less safety — the caller can still retry. If the order cannot be lost, you might prefer to use a combination of [acknowledgments](https://www.rabbitmq.com/docs/confirms) and [quorum queues](https://www.rabbitmq.com/docs/quorum-queues) to ensure a message is safe once confirmed.
+This topology allows the processing of orders to be serialized to serve them in a first come first served order. This avoids the need for transactions.
+**➡ Benefits**
+  * A RabbitMQ client can be a publisher and a consumer at the same time.
+  * RabbitMQ can be used to [dispatch RPC calls](https://www.rabbitmq.com/tutorials/tutorial-six-python).
+
+
+## Streaming
+You run a video platform. When a user uploads a new video, you have multiple tasks to complete when the video is safely stored: run some post-upload analysis, transcode lower quality copies of the video, notify other users subscribed to the author's creations, and so on.
+The upload service appends “New video” events to a RabbitMQ stream. Multiple backend applications can subscribe to that stream and read new events independently of each other. Users must be notified right away, but the post-upload analysis can wait and run once a day.
+**➡ Benefits**
+  * [Streams](https://www.rabbitmq.com/docs/streams) are very efficient and avoids the need to duplicate messages.
+  * A consumers can go back and forth in the stream even if there are concurrent consumers.
+
+
+## IoT
+You provide package delivery services across the entire galaxy. You have a swarm of space drones that need to report their status on a regular basis to a server hosted on exoplanet _Kepler-438 b_. Unfortunately, the network connectivity is not great…
+Each space drone runs a local RabbitMQ standalone node that buffers their report until a connection is possible with the upstream RabbitMQ.
+When planets are aligned, the drone's RabbitMQ shovels all reports to the upstream RabbitMQ.
+**➡ Benefits**
+  * RabbitMQ deployments can be chained to cater for different needs in your service, using features such as [shovels](https://www.rabbitmq.com/docs/shovel) and [federation](https://www.rabbitmq.com/docs/federation).
+  * [MQTT](https://www.rabbitmq.com/docs/mqtt) is well suited for millions of concurrent connections.
+
+
+# What about the license?
+Since its original release in 2007, RabbitMQ is Free and Open Source Software. In addition, Broadcom offer a range of commercial offerings.
+## Free and Open Source
+RabbitMQ is licensed under the 
+Of course, contributions are more than welcome! Whether it is through detailed bug reports, patches, helping someone, documentation or any form of advocacy. In fact contributing is the best way to support the project! Take a look at our [Contributors page](https://www.rabbitmq.com/github).
+## Commercial offerings
+Broadcom offers 
+In addition, a range of commercial offerings for RabbitMQ are available. These commercial offerings include all of the features of RabbitMQ, with some additional management and advanced features like [AMQP 1.0 over WebSocket](https://www.rabbitmq.com/blog/2025/04/16/amqp-websocket).
+For a list of the commercial offerings, take a look at the 
+# What are users saying?
+RabbitMQ is used by millions around the world. Here is what some of our users are saying about it!
+> RabbitMQ is the one message broker that HASN'T given me grief in my career.
+— 
+> I've been running RabbitMQ for >8 years in production, once even in a fleet of 180 buses where every bus had an instance of rabbitmq running locally. Never had a single issue in all those years.
+— 
+
+---

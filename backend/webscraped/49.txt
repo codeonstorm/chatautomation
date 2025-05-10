@@ -1,0 +1,17 @@
+
+URL: https://devdocs.bagisto.com/
+Depth: 0
+[ Home ](https://devdocs.bagisto.com/)
+[ User Guide (opens new window)](https://docs.bagisto.com/)
+[ Extensions (opens new window)](https://bagisto.com/en/extensions/)
+[ Community Forum (opens new window)](https://forums.bagisto.com/)
+[ Contact Us (opens new window)](https://bagisto.com/en/contacts/)
+## Package creation
+Learn how to create a new package for Bagisto.
+## Digging Deeper
+Learn advanced topics like payment methods, shipping methods.
+## Custom theme
+Learn how to create or customize a theme for Bagisto.
+Copyright © 2025 Bagisto 
+
+---

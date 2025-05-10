@@ -1,4 +1,4 @@
-import type { ScrapedUrls } from "@/types/scrapedurls"
+import type { ScrapedUrls, WebCrawProgress } from "@/types/scrapedurls"
 
 const API_URL = "http://127.0.0.1:8000/api/v1"
 
@@ -35,4 +35,25 @@ export async function startWebCrawler(serviceid: number, url: string): Promise<u
     },
   })
   return handleResponse<undefined>(response)
+}
+
+export async function deleteUrl(serviceid: number, urlid: number): Promise<undefined> {
+  const accessToken = localStorage.getItem("accessToken")
+  const response = await fetch(`${API_URL}/${serviceid}/webscraper?url=${url}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+  return handleResponse<undefined>(response)
+}
+
+export async function getWebCrawProgress(serviceid: number): Promise<WebCrawProgress[]> {
+  const accessToken = localStorage.getItem("accessToken")
+  const response = await fetch(`${API_URL}/${serviceid}/webscraper/progress`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+  return handleResponse<WebCrawProgress[]>(response)
 }
