@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 
 from app.core.auth import get_current_user
 from app.core.database import get_session
-from app.models.taskstatus import TaskStatus, TaskStageEnum
+from app.models.taskstatus import TaskStatus, TaskStageEnum, TaskTypeEnum
 from app.models.scrapedurls import ScrapedUrls
 from tasks.tasks import start_crawl_task
 
@@ -81,6 +81,7 @@ async def start_crawl(
     # Step 1: Create a task tracker entry in DB
     tasktracker = TaskStatus(      
         service_id=service_id,
+        type=TaskTypeEnum.crawl,
         message_id='',
         meta_data='',
         status=TaskStageEnum.in_queued,
@@ -135,9 +136,14 @@ async def get_progress(
     service_id: int,
     db: Session = Depends(get_session),
 ):
-    results = db.exec(select(TaskStatus).where(TaskStatus.service_id == service_id)).all()
+    results = db.exec(
+        select(TaskStatus)
+        .where(TaskStatus.service_id == service_id)
+        .where(TaskStatus.type == TaskTypeEnum.crawl)
+        .order_by(TaskStatus.created_at.desc())
+        ).all()
     if not results:
-        raise HTTPException(status_code=404, detail="No URLs found")
+        return []
     return results
 
 

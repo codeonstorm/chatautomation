@@ -14,11 +14,15 @@ class TaskStageEnum(str, Enum):
     completed = "completed"
     failed = "failed"
 
+class TaskTypeEnum(str, Enum):
+    crawl = "crawl"
+    ingestion = "ingestion"
 
 class TaskStatus(SQLModel, table=True):
     __tablename__ = "task_status"
     id: int = Field(primary_key=True)
     service_id: int = Field(nullable=False)
+    type: TaskTypeEnum = Field(nullable=False)
     message_id: str = Field(nullable=True)
     meta_data: dict = Field(sa_column=Column(JSON))
     status: TaskStageEnum = Field(default=TaskStageEnum.not_started, sa_column=Column(SqlEnum(TaskStageEnum)))

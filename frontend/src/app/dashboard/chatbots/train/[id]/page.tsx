@@ -82,6 +82,7 @@ import { RootState } from "@/redux/store/store";
 import { useAuth } from "@/context/auth-context";
 import { Chatbot } from "@/types/chatbot";
 import { getChatbot } from "@/services/chatbot";
+import TrainingButton from "@/components/Training-button";
 
 interface Progress {
   [key: string]: number;
@@ -738,33 +739,8 @@ export default function ChatbotTrainingPage() {
                 </Tabs>
               </CardContent>
             </Card>
-
-            <div className="mt-8">
-              <Separator className="my-6" />
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Start Training</h2>
-                  <p className="text-muted-foreground">
-                    Train your chatbot with the data you've provided. This
-                    process may take some time depending on the amount of data.
-                  </p>
-                </div>
-                <Button
-                  size="lg"
-                  onClick={handleStartTraining}
-                  disabled={isLoading || trainingData.length === 0}
-                  className="gap-2"
-                >
-                  {isLoading ? (
-                    <>Processing...</>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4" /> Start Training
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+            <TrainingButton isDataExists={1} chatbot_uuid={params.id as string} domain_uuid="">
+              </TrainingButton>
           </div>
         </div>
       </div>

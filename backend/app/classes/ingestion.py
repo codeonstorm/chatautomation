@@ -6,6 +6,11 @@ from app.classes.vector_db import VectorDB
 from app.classes.file_helper import FileHelper
 from uuid import UUID
 
+from sqlmodel import select
+from sqlmodel import Session
+from app.core.database import get_session
+from app.models.taskstatus import TaskStatus, TaskStageEnum
+
 # from PyPDF2 import PdfReader
 import docx
 import openpyxl
@@ -16,7 +21,8 @@ class Ingestion:
 
     SUPPORTED_EXTENSIONS = ["docx", "txt", "xlsx", "ppt", "pptx"]
 
-    def __init__(self, service_id: int, chatbot_uuid: UUID):
+    def __init__(self, taskid:int, service_id: int, chatbot_uuid: UUID):
+        self.taskid = taskid
         self.service_id = service_id
         self.chatbot_uuid = chatbot_uuid
         self.splitter = DocumentSplitter()
@@ -72,11 +78,31 @@ class Ingestion:
         return "\n".join(text)
 
     def ingest(self):
+        db:Session = next(get_session())        
         upload_path = Path("uploads") / str(self.service_id)
         file_helper = FileHelper(upload_path)
         files = file_helper.get_file_details()
 
+        total_target = len(files)
+        target_processed = 0
+
         for file_info in files:
+            # update progress...
+            target_processed += 1
+            progress = (target_processed / total_target) * 100
+
+            statement = select(TaskStatus).where(TaskStatus.id == self.taskid)
+            task = db.exec(statement)
+            task = task.one()
+
+            if progress == 100:
+                task.status = TaskStageEnum.completed
+            else:
+                task.status = TaskStageEnum.in_progress
+            task.progess = progress
+            db.add(task)
+            db.commit()
+
             extension = file_info["extension"].lower()
             if extension not in self.SUPPORTED_EXTENSIONS:
                 print(f"Skipping unsupported file: {file_info['name']}")
@@ -94,5 +120,5 @@ class Ingestion:
 
             for chunk, embedding in zip(chunks, embeddings):
                 self.vector_db.insert_vector(embedding.tolist(), chunk)
-
+        
         self.vector_db.close()

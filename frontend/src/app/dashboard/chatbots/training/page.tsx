@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +28,9 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { DarkModeToggle } from "@/components/darkmodetoogle";
+import { useAuth } from "@/context/auth-context";
+import { getIngestionProgress } from "@/services/scrapedurls";
+import { TaskProgress } from "@/types/scrapedurls";
 
 export default function TrainingProgressPage() {
   // Sample training data
@@ -69,6 +72,26 @@ export default function TrainingProgressPage() {
       estimatedCompletion: "8 hours remaining",
     },
   ];
+
+  const {user} = useAuth()
+  const [tasks, setTasks] = useState<TaskProgress[]>([])
+  useEffect(() => {
+    if(!user?.services[0].id) return
+    const fetchTrainingData = async () => {
+      try {
+        const data:TaskProgress[] = await getIngestionProgress(user.services[0].id);
+        setTasks(data)
+        console.log(data);
+      } catch (error) {
+        console.error("Error fetching training data:", error);
+      }
+    };
+
+    fetchTrainingData();
+    const interval = setInterval(fetchTrainingData, 5000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <SidebarInset>
@@ -152,7 +175,7 @@ export default function TrainingProgressPage() {
         </div>
 
         {/* Visualization Tabs */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Training Metrics</CardTitle>
             <CardDescription>
@@ -201,7 +224,7 @@ export default function TrainingProgressPage() {
               </TabsContent>
             </Tabs>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Active Training Jobs */}
         <Card>
@@ -213,30 +236,30 @@ export default function TrainingProgressPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {models.map((model) => (
-                <div key={model.id} className="space-y-2">
+              {tasks.map((task) => (
+                <div key={task.id} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">{model.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {model.status} • Epochs: {model.epochs}
-                      </p>
+                      <h4 className="font-medium">{task.type}/embedding</h4>
+                      {/* <p className="text-sm text-muted-foreground">
+                        {task.status} • Epochs: {task.epochs}
+                      </p> */}
                     </div>
                     <div className="text-right text-sm">
-                      <p>Started {model.startTime}</p>
-                      <p className="text-muted-foreground">
-                        {model.estimatedCompletion}
-                      </p>
+                      <p>Started: {task.created_at.replace('T', ' ')}</p>
+                      {/* <p className="text-muted-foreground">
+                        {task.estimatedCompletion}
+                      </p> */}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <progress value={model.progress} className="h-2" />
+                    <progress value={task.progess} className="h-2" />
                     <span className="text-sm font-medium">
-                      {model.progress}%
+                      {task.progess}%
                     </span>
                   </div>
                   <div className="flex justify-end gap-2">
-                    {model.status === "Training" && (
+                    {task.status === "Training" && (
                       <Button variant="outline" size="sm">
                         Pause
                       </Button>
@@ -245,7 +268,7 @@ export default function TrainingProgressPage() {
                       View Details
                     </Button>
                   </div>
-                  {model.id !== models.length && <Separator className="mt-4" />}
+                  {task.id !== tasks.length && <Separator className="mt-4" />}
                 </div>
               ))}
             </div>

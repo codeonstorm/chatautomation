@@ -1,4 +1,4 @@
-import type { ScrapedUrls, WebCrawProgress } from "@/types/scrapedurls"
+import type { ScrapedUrls, TaskProgress, WebCrawProgress } from "@/types/scrapedurls"
 
 const API_URL = "http://127.0.0.1:8000/api/v1"
 
@@ -56,4 +56,25 @@ export async function getWebCrawProgress(serviceid: number): Promise<WebCrawProg
     },
   })
   return handleResponse<WebCrawProgress[]>(response)
+}
+
+export async function startDataIngestion(serviceid: number, chatbot_uuid: string, domain_uuid: string): Promise<undefined[]> {
+  const accessToken = localStorage.getItem("accessToken")
+  const response = await fetch(`${API_URL}/${serviceid}/ingestion/${chatbot_uuid}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+  return handleResponse<undefined[]>(response)
+}
+
+export async function getIngestionProgress(serviceid: number): Promise<TaskProgress[]> {
+  const accessToken = localStorage.getItem("accessToken")
+  const response = await fetch(`${API_URL}/${serviceid}/ingestion/progress`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+  return handleResponse<TaskProgress[]>(response)
 }

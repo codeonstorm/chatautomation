@@ -11,6 +11,19 @@ export interface WebCrawProgress {
   url: string;
   message_id: string;
   meta_data: string;
+  type: string;
+  status: string;
+  progess: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskProgress {
+  id: number;
+  url: string;
+  message_id: string;
+  meta_data: string;
+  type: string;
   status: string;
   progess: number;
   created_at: string;
