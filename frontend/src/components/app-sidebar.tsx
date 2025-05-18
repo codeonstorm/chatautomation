@@ -57,6 +57,7 @@ const data = {
   //   email: "a@example.com",
   //   avatar: "/avatars/shadcn.jpg",
   // },
+  
   teams: [
     {
       name: "AI Chatbot Builder",
@@ -148,8 +149,23 @@ const data = {
       icon: Frame,
     },
     {
-      name: "Sales & Marketing",
+      name: "Analytics",
       url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Intents",
+      url: "/dashboard/intents",
+      icon: PieChart,
+    },
+    {
+      name: "Entities",
+      url: "/dashboard/entities",
+      icon: PieChart,
+    },
+    {
+      name: "Webhooks",
+      url: "/dashboard/webhooks",
       icon: PieChart,
     },
   ]

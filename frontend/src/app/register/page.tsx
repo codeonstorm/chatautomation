@@ -35,12 +35,12 @@ export default function RegisterPage() {
     try {
       await createUser({
         email,
-        full_name: fullName,
+        name: fullName,
         password,
       })
 
       // Redirect to login page after successful registration
-      router.push("/login?registered=true")
+      router.push("/login")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.")
     } finally {

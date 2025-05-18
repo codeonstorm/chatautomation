@@ -40,6 +40,18 @@ pip install crawl4ai
 crawl4ai-setup  # Run the setup command
 ```
 
+### NER Model
+```bash
+pip install gliner
+https://huggingface.co/spaces/urchade/gliner_multiv2.1
+https://github.com/urchade/GLiNER?tab=readme-ov-file
+```
+
+
+pip install setfit datasets
+
+
+
 ### Message Queue
 ```bash
 pip install -U dramatiq[rabbitmq]

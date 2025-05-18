@@ -2,13 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { User } from '@/types/user'
 
 // Fix: state is nullable (e.g. no user logged in yet)
-const initialState: User  = null
+// const initialState: User | null = null;
 
 export const userSlice = createSlice({
   name: 'user',
-  initialState,
+  initialState: null as User | null,
   reducers: {
-    setUser(state, action: PayloadAction<User>) {
+    setUser(_state, action: PayloadAction<User>) {
       return action.payload
     },
     removeUser() {
@@ -18,6 +18,7 @@ export const userSlice = createSlice({
       if (state) {
         return { ...state, ...action.payload }
       }
+      return state
     }
   }
 })

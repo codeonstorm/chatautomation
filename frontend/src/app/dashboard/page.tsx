@@ -36,11 +36,16 @@ import { Domain } from "@/types/domain";
 import { useAppDispatch } from "@/redux/store/hooks";
 import { addDomains } from "@/redux/store/features/domain/domain";
 import { addChatUsers } from "@/redux/store/features/chathistory/chathistory";
+import { Chatbot } from "@/types/chatbot";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store/store";
 
 export default function Page() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const chatbots: Chatbot[] = useSelector((state: RootState) => state.chatbots);
+  const domains: Domain[] = useSelector((state: RootState) => state.domains);
 
   // useEffect(() => {
   //   if (!isLoading) {
@@ -91,18 +96,18 @@ export default function Page() {
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">{chatbots.length}</div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Domains
+                  Total Domains
                 </CardTitle>
                 <Globe className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8</div>
+                <div className="text-2xl font-bold">{domains.length}</div>
               </CardContent>
             </Card>
             <Card>

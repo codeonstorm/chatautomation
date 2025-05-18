@@ -25,6 +25,9 @@ from app.models.function import Function
 from app.models.chathistory import ChatHistory, KnownUser
 from app.models.scrapedurls import ScrapedUrls
 from app.models.taskstatus import TaskStatus
+from app.models.webhook import Webhook
+from app.models.entities import Entities
+from app.models.intents import Intent
 
 load_dotenv()
 

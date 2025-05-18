@@ -71,20 +71,18 @@ export async function getCurrentUser(): Promise<User> {
 // Create user
 export async function createUser(userData: {
   email: string
-  full_name: string
+  name: string
   password: string
-  is_active?: boolean
-  is_superuser?: boolean
 }) {
-  const response = await fetch(`${API_URL}/users`, {
+  const response = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       ...userData,
-      is_active: userData.is_active ?? true,
-      is_superuser: userData.is_superuser ?? false,
+      // is_active: userData.is_active ?? true,
+      // is_superuser: userData.is_superuser ?? false,
     }),
   })
 

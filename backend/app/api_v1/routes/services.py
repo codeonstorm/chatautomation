@@ -65,7 +65,7 @@ def get_service(
       select(Service)
       .where(Service.user_id == current_user.id)
       .where(Service.id == service_id)
-      ).all()
+      ).first()
 
     return {
         "id": service.id,

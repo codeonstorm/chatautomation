@@ -4,6 +4,7 @@ import domainReducer from './features/domain/domain'
 import chatbotReducer from './features/chatbot/chatbot'
 import chatUserReducer from './features/chathistory/chathistory'
 import scrapedUrlReducer from './features/scrapedurl/scrapedurl'
+import webhookReducer from './features/webhook/webhook'
 
 export const makeStore = () => {
   return configureStore({
@@ -13,6 +14,7 @@ export const makeStore = () => {
       chatbots: chatbotReducer,
       chatuser: chatUserReducer,
       scrapedurls: scrapedUrlReducer,
+      webhook: webhookReducer
     },
   })
 }

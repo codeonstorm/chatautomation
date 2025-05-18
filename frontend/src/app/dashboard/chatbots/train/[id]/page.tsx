@@ -351,7 +351,7 @@ export default function ChatbotTrainingPage() {
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-2">
         <div className="px-4">
-          <div className="grid gap-4 md:grid-cols-4">
+          {/* <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -396,7 +396,7 @@ export default function ChatbotTrainingPage() {
                 <div className="text-2xl font-bold">1,234</div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
 
           <div className="container mx-auto py-6 mt-4">
             <Card>
