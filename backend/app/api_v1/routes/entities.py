@@ -12,41 +12,35 @@ from app.schemas.entitie import EntitiesCreate, EntitiesUpdate, EntitiesRead
 from app.schemas.response import ResponseSchema
 from app.schemas.user import UserRead
 
+from app.models.entities import Entities
+
 router = APIRouter(prefix="/{service_id}/{chatbot_uuid}/entities", tags=["entities"])
 
 @router.post("", response_model=EntitiesRead)
 def create_entity(
     service_id: int,
     chatbot_uuid: UUID,
-    webhook: EntitiesCreate,
+    entity_in: EntitiesCreate,
     session: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    db_webhook = Webhook(
-        name=webhook.name,
-        description=webhook.description,
-        endpoint=webhook.endpoint,
-        status=webhook.status,
-        service_id=service_id, 
+    entity = Entities(
+        service_id=service_id,
         chatbot_uuid=chatbot_uuid,
-        basic_auth=json.dumps(webhook.basic_auth),
-        header=json.dumps(webhook.header)
+        name=entity_in.name,
+        description=entity_in.description,
+        entity_type=entity_in.entity_type,
+        value=json.dumps(entity_in.value)
     )
-    session.add(db_webhook)
+    session.add(entity)
     session.commit()
-    session.refresh(db_webhook)
+    session.refresh(entity)
     return EntitiesRead(
-        id=db_webhook.id,
-        service_id=db_webhook.service_id,
-        chatbot_uuid=db_webhook.chatbot_uuid,
-        name=db_webhook.name,
-        description=db_webhook.description,
-        endpoint=db_webhook.endpoint,
-        basic_auth=json.loads(db_webhook.basic_auth) if db_webhook.basic_auth else {},
-        header=json.loads(db_webhook.header) if db_webhook.header else {},
-        status=db_webhook.status,
-        created_at=db_webhook.created_at,
-        updated_at=db_webhook.updated_at
+        id=entity.id,
+        name=entity.name,
+        description=entity.description,
+        entity_type=entity.entity_type,
+        value=json.loads(entity.value) if entity.value else {},
     )
 
 @router.get("", response_model=list[EntitiesRead])
@@ -56,114 +50,110 @@ def read_entities(
     session: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    webhook = session.exec(
-        select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+    entities = session.exec(
+        select(Entities).where(
+            Entities.service_id == service_id,
+            Entities.chatbot_uuid == chatbot_uuid
         )
-    ).first()
-    if not webhook:
-        raise HTTPException(status_code=404, detail="webhook not found")
-    return EntitiesRead(
-        id=webhook.id,
-        service_id=webhook.service_id,
-        chatbot_uuid=webhook.chatbot_uuid,
-        name=webhook.name,
-        description=webhook.description,
-        endpoint=webhook.endpoint,
-        basic_auth=json.loads(webhook.basic_auth) if webhook.basic_auth else {},
-        header=json.loads(webhook.header) if webhook.header else {},
-        status=webhook.status,
-        created_at=webhook.created_at,
-        updated_at=webhook.updated_at
-    )
+    ).all()
+
+    return [
+        EntitiesRead(
+            id=e.id,
+            name=e.name,
+            description=e.description,
+            entity_type=e.entity_type,
+            value=json.loads(e.value) if e.value else {}
+        )
+        for e in entities
+    ]
 
 
 @router.get("/{entity_id}", response_model=EntitiesRead)
 def read_entity(
     service_id: int,
     chatbot_uuid: UUID,
+    entity_id: int,
     session: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    webhook = session.exec(
-        select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+    entity = session.exec(
+        select(Entities).where(
+            Entities.service_id == service_id,
+            Entities.chatbot_uuid == chatbot_uuid,
+            Entities.id == entity_id
         )
     ).first()
-    if not webhook:
-        raise HTTPException(status_code=404, detail="webhook not found")
+
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
     return EntitiesRead(
-        id=webhook.id,
-        service_id=webhook.service_id,
-        chatbot_uuid=webhook.chatbot_uuid,
-        name=webhook.name,
-        description=webhook.description,
-        endpoint=webhook.endpoint,
-        basic_auth=json.loads(webhook.basic_auth) if webhook.basic_auth else {},
-        header=json.loads(webhook.header) if webhook.header else {},
-        status=webhook.status,
-        created_at=webhook.created_at,
-        updated_at=webhook.updated_at
+        id=entity.id,
+        name=entity.name,
+        description=entity.description,
+        entity_type=entity.entity_type,
+        value=json.loads(entity.value) if entity.value else {}
     )
 
 @router.patch("/{entity_id}", response_model=EntitiesRead)
 def update_entity(
     service_id: int,
     chatbot_uuid: UUID,
-    webhook_update: EntitiesUpdate,
+    entity_id: int,
+    entity_update: EntitiesUpdate,
     session: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    webhook = session.exec(
-        select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+    entity = session.exec(
+        select(Entities).where(
+            Entities.service_id == service_id,
+            Entities.chatbot_uuid == chatbot_uuid,
+            Entities.id == entity_id
         )
     ).first()
-    if not webhook:
-        raise HTTPException(status_code=404, detail="webhook not found")
 
-    webhook_data = webhook_update.model_dump(exclude_unset=True)
-    for key, value in webhook_data.items():
-        if key in {"basic_auth", "header"} and isinstance(value, dict):
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
+    entity_data = entity_update.model_dump(exclude_unset=True)
+    for key, value in entity_data.items():
+        if key == "value" and isinstance(value, dict):
             value = json.dumps(value)
-        setattr(webhook, key, value)
+        setattr(entity, key, value)
 
-    session.add(webhook)
+    session.add(entity)
     session.commit()
-    session.refresh(webhook)
+    session.refresh(entity)
+
     return EntitiesRead(
-        id=webhook.id,
-        service_id=webhook.service_id,
-        chatbot_uuid=webhook.chatbot_uuid,
-        name=webhook.name,
-        description=webhook.description,
-        endpoint=webhook.endpoint,
-        basic_auth=json.loads(webhook.basic_auth) if webhook.basic_auth else {},
-        header=json.loads(webhook.header) if webhook.header else {},
-        status=webhook.status,
-        created_at=webhook.created_at,
-        updated_at=webhook.updated_at
+        id=entity.id,
+        name=entity.name,
+        description=entity.description,
+        entity_type=entity.entity_type,
+        value=json.loads(entity.value) if entity.value else {}
     )
+
 
 @router.delete("/{entity_id}", response_model=ResponseSchema)
 def delete_entity(
     service_id: int,
     chatbot_uuid: UUID,
+    entity_id: int,
     session: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    webhook = session.exec(
-        select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+    entity = session.exec(
+        select(Entities).where(
+            Entities.service_id == service_id,
+            Entities.chatbot_uuid == chatbot_uuid,
+            Entities.id == entity_id
         )
     ).first()
-    if not webhook:
-        raise HTTPException(status_code=404, detail="Function not found")
 
-    session.delete(webhook)
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
+    session.delete(entity)
     session.commit()
-    return ResponseSchema(success=True, message="webhook deleted successfully")
+    return ResponseSchema(success=True, message="Entity deleted successfully")

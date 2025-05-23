@@ -50,6 +50,11 @@ https://github.com/urchade/GLiNER?tab=readme-ov-file
 
 pip install setfit datasets
 
+## for NER extraction
+```bash
+pip install spacy
+python -m spacy download en_core_web_sm
+```
 
 
 ### Message Queue

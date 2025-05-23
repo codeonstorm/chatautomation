@@ -2,13 +2,13 @@ from uuid import UUID
 import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 
 from app.core.auth import get_current_user
 from app.core.database import get_session
 
-from app.models.webhook import Webhook
-from app.schemas.newIntent import NewIntentRead, NewIntentCreate, NewIntentUpdate
+from app.models.intents import Intent, Action, Parameter
+from app.schemas.newIntent import NewIntentRead, NewIntentCreate, NewIntentUpdate, ActionBase, ParameterBase
 from app.schemas.response import ResponseSchema
 from app.schemas.user import UserRead
 
@@ -18,122 +18,256 @@ router = APIRouter(prefix="/{service_id}/{chatbot_uuid}/intents", tags=["intents
 def create_intent(
     service_id: int,
     chatbot_uuid: UUID,
-    webhook: NewIntentCreate,
-    session: Session = Depends(get_session),
+    intent_in: NewIntentCreate,
+    db: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    db_webhook = Webhook(
-        name=webhook.name,
-        description=webhook.description,
-        endpoint=webhook.endpoint,
-        status=webhook.status,
-        service_id=service_id, 
-        chatbot_uuid=chatbot_uuid,
-        basic_auth=json.dumps(webhook.basic_auth),
-        header=json.dumps(webhook.header)
+    action_data = intent_in.action
+    parameters_data = action_data.parameters
+
+    # Create the Intent object
+    intent = Intent(
+        **intent_in.model_dump(exclude={"action"}),
+        service_id=service_id,
+        chatbot_uuid=chatbot_uuid
     )
-    session.add(db_webhook)
-    session.commit()
-    session.refresh(db_webhook)
-    return NewIntentRead(
-        id=db_webhook.id,
-        service_id=db_webhook.service_id,
-        chatbot_uuid=db_webhook.chatbot_uuid,
-        name=db_webhook.name,
-        description=db_webhook.description,
-        endpoint=db_webhook.endpoint,
-        basic_auth=json.loads(db_webhook.basic_auth) if db_webhook.basic_auth else {},
-        header=json.loads(db_webhook.header) if db_webhook.header else {},
-        status=db_webhook.status,
-        created_at=db_webhook.created_at,
-        updated_at=db_webhook.updated_at
+    db.add(intent)
+    db.flush() 
+    
+    # Create the Action object
+    action = Action(
+        intent_id=intent.id,
+        name=action_data.name,
+        webhook=action_data.webhook
     )
+    db.add(action)
+    db.flush()
+
+    # Create Parameter objects
+    parameters = [
+        Parameter(
+            action_id=action.id,
+            parameter=param.parameter,
+            required=param.required,
+            message=param.message
+        )
+        for param in parameters_data
+    ]
+    db.add_all(parameters)
+
+    # Commit all at once
+    db.commit()
+
+    response = NewIntentRead(
+        id=intent.id,
+        name=intent.name,
+        description=intent.description,
+        phrases=intent.phrases,
+        default_intent_responses=intent.default_intent_responses,
+        service_id=intent.service_id,
+        chatbot_uuid=intent.chatbot_uuid,
+        created_at=intent.created_at,
+        updated_at=intent.updated_at,
+        action=ActionBase(
+            name=action.name,
+            webhook=action.webhook,
+            parameters=[
+                ParameterBase(
+                    parameter=p.parameter,
+                    required=p.required,
+                    message=p.message
+                ) for p in parameters
+            ]
+        )
+    )
+
+    return response
 
 @router.get("/{intent_id}", response_model=NewIntentRead)
 def read_intent(
     service_id: int,
     chatbot_uuid: UUID,
-    session: Session = Depends(get_session),
+    intent_id: int,
+    db: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    webhook = session.exec(
-        select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+    intent = db.exec(
+        select(Intent).where(
+            Intent.id == intent_id,
+            Intent.service_id == service_id,
+            Intent.chatbot_uuid == chatbot_uuid
         )
     ).first()
-    if not webhook:
-        raise HTTPException(status_code=404, detail="webhook not found")
+    if not intent:
+        raise HTTPException(status_code=404, detail="Intent not found")
+
+    action = db.exec(select(Action).where(Action.intent_id == intent.id)).first()
+    parameters = db.exec(select(Parameter).where(Parameter.action_id == action.id)).all()
+
     return NewIntentRead(
-        id=webhook.id,
-        service_id=webhook.service_id,
-        chatbot_uuid=webhook.chatbot_uuid,
-        name=webhook.name,
-        description=webhook.description,
-        endpoint=webhook.endpoint,
-        basic_auth=json.loads(webhook.basic_auth) if webhook.basic_auth else {},
-        header=json.loads(webhook.header) if webhook.header else {},
-        status=webhook.status,
-        created_at=webhook.created_at,
-        updated_at=webhook.updated_at
+        id=intent.id,
+        name=intent.name,
+        description=intent.description,
+        phrases=intent.phrases,
+        default_intent_responses=intent.default_intent_responses,
+        service_id=intent.service_id,
+        chatbot_uuid=intent.chatbot_uuid,
+        created_at=intent.created_at,
+        updated_at=intent.updated_at,
+        action=ActionBase(
+            name=action.name,
+            webhook=action.webhook,
+            parameters=[
+                ParameterBase(
+                    parameter=param.parameter,
+                    required=param.required,
+                    message=param.message
+                ) for param in parameters
+            ]
+        )
     )
+
+@router.get("", response_model=list[NewIntentRead])
+def get_all_intents(
+    service_id: int,
+    chatbot_uuid: UUID,
+    db: Session = Depends(get_session),
+    current_user: UserRead = Depends(get_current_user),
+):
+    intents = db.exec(
+        select(Intent).where(
+            Intent.service_id == service_id,
+            Intent.chatbot_uuid == chatbot_uuid
+        )
+    ).all()
+
+    results = []
+    for intent in intents:
+        action = db.exec(select(Action).where(Action.intent_id == intent.id)).first()
+        parameters = db.exec(select(Parameter).where(Parameter.action_id == action.id)).all()
+        results.append(NewIntentRead(
+            id=intent.id,
+            name=intent.name,
+            description=intent.description,
+            phrases=intent.phrases,
+            default_intent_responses=intent.default_intent_responses,
+            service_id=intent.service_id,
+            chatbot_uuid=intent.chatbot_uuid,
+            created_at=intent.created_at,
+            updated_at=intent.updated_at,
+            action=ActionBase(
+                name=action.name,
+                webhook=action.webhook,
+                parameters=[
+                    ParameterBase(
+                        parameter=param.parameter,
+                        required=param.required,
+                        message=param.message
+                    ) for param in parameters
+                ]
+            )
+        ))
+    return results
 
 @router.patch("/{intent_id}", response_model=NewIntentRead)
 def update_intent(
     service_id: int,
     chatbot_uuid: UUID,
-    webhook_update: NewIntentCreate,
-    session: Session = Depends(get_session),
+    intent_id: int,
+    intent_update: NewIntentUpdate,
+    db: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    webhook = session.exec(
-        select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+    intent = db.exec(
+        select(Intent).where(
+            Intent.id == intent_id,
+            Intent.service_id == service_id,
+            Intent.chatbot_uuid == chatbot_uuid
         )
     ).first()
-    if not webhook:
-        raise HTTPException(status_code=404, detail="webhook not found")
+    if not intent:
+        raise HTTPException(status_code=404, detail="Intent not found")
 
-    webhook_data = webhook_update.model_dump(exclude_unset=True)
-    for key, value in webhook_data.items():
-        if key in {"basic_auth", "header"} and isinstance(value, dict):
-            value = json.dumps(value)
-        setattr(webhook, key, value)
+    # Update intent fields
+    for key, value in intent_update.model_dump(exclude={"action"}).items():
+        setattr(intent, key, value)
 
-    session.add(webhook)
-    session.commit()
-    session.refresh(webhook)
+    # Update action
+    action = db.exec(select(Action).where(Action.intent_id == intent.id)).first()
+    action_data = intent_update.action
+    action.name = action_data.name
+    action.webhook = action_data.webhook
+
+    # Delete old parameters and add new ones
+    db.exec(delete(Parameter).where(Parameter.action_id == action.id))
+    db.flush()
+
+    new_parameters = [
+        Parameter(
+            action_id=action.id,
+            parameter=param.parameter,
+            required=param.required,
+            message=param.message
+        )
+        for param in action_data.parameters
+    ]
+    db.add_all(new_parameters)
+
+    db.commit()
+    db.refresh(intent)
+
     return NewIntentRead(
-        id=webhook.id,
-        service_id=webhook.service_id,
-        chatbot_uuid=webhook.chatbot_uuid,
-        name=webhook.name,
-        description=webhook.description,
-        endpoint=webhook.endpoint,
-        basic_auth=json.loads(webhook.basic_auth) if webhook.basic_auth else {},
-        header=json.loads(webhook.header) if webhook.header else {},
-        status=webhook.status,
-        created_at=webhook.created_at,
-        updated_at=webhook.updated_at
+        id=intent.id,
+        name=intent.name,
+        description=intent.description,
+        phrases=intent.phrases,
+        default_intent_responses=intent.default_intent_responses,
+        service_id=intent.service_id,
+        chatbot_uuid=intent.chatbot_uuid,
+        created_at=intent.created_at,
+        updated_at=intent.updated_at,
+        action=ActionBase(
+            name=action.name,
+            webhook=action.webhook,
+            parameters=[
+                ParameterBase(
+                    parameter=p.parameter,
+                    required=p.required,
+                    message=p.message
+                ) for p in new_parameters
+            ]
+        )
     )
 
-@router.delete("/{indent_id}", response_model=ResponseSchema)
+@router.delete("/{intent_id}", response_model=ResponseSchema)
 def delete_intent(
     service_id: int,
     chatbot_uuid: UUID,
-    session: Session = Depends(get_session),
+    intent_id: int,
+    db: Session = Depends(get_session),
     current_user: UserRead = Depends(get_current_user),
 ):
-    webhook = session.exec(
-        select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+    intent = db.exec(
+        select(Intent).where(
+            Intent.id == intent_id,
+            Intent.service_id == service_id,
+            Intent.chatbot_uuid == chatbot_uuid
         )
     ).first()
-    if not webhook:
-        raise HTTPException(status_code=404, detail="Function not found")
+    if not intent:
+        raise HTTPException(status_code=404, detail="Intent not found")
 
-    session.delete(webhook)
-    session.commit()
-    return ResponseSchema(success=True, message="webhook deleted successfully")
+    # Check for action
+    action = db.exec(select(Action).where(Action.intent_id == intent.id)).first()
+
+    if action:
+        # Delete related parameters
+        parameters = db.exec(select(Parameter).where(Parameter.action_id == action.id)).all()
+        for param in parameters:
+            db.delete(param)
+        db.delete(action)
+
+    db.delete(intent)
+    db.commit()
+
+    return ResponseSchema(success=True, message="Intent deleted successfully")

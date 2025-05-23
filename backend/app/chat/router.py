@@ -49,6 +49,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from app.schemas.chathistory import ChatHistoryRead, KnownUserRead
+from app.classes.ner.regex_ner_extractor import RegexNERExtractor
+from app.classes.ner.synonym_ner_extractor import SynonymNERExtractor
+from app.schemas.context_store import ContextStore
 
 MODEL_DIR = Path("models")
 model = SetFitModel.from_pretrained(MODEL_DIR / "buybot_setfit_model" / "buybot_setfit_model")
@@ -165,6 +168,7 @@ async def websocket_endpoint(
             await manager.send_personal_message('assistant: ' + history.msg, websocket)
    
     chat_history_store = []
+    context_store: ContextStore = {}
     try:
         while True:
             data = await websocket.receive_json()
@@ -209,6 +213,10 @@ async def websocket_endpoint(
                 predicted_intent = model([user_message_str])
                 print(f"\n\n\n\nSetFitModel Intent ': {predicted_intent} {time.time() - t1} seconds")
 
+                if predicted_intent == 'other':
+                    if context_store:
+                        predicted_intent = context_store.intent
+
                 if predicted_intent == 'greeting':
                     await manager.send_personal_message("Hello! How can I help you today?", websocket)
                     # assistant msg entry
@@ -246,6 +254,43 @@ async def websocket_endpoint(
                     session.commit()
                     continue
                 elif predicted_intent == 'schedule_meet':
+                    # set store
+                    #  set intent, context, entity w/ value
+                    # check actions
+
+                    # check entities
+                    action_arguments = {
+                        'email': {
+                            'required': True,
+                            'msg': 'Please provide email'
+                        },
+                        'mobile': {
+                            'required': True,
+                            'msg': 'Mobile number required to schedule meet'
+                        }
+                    }
+                    entities = RegexNERExtractor.extract_entities(user_message_str)
+                    print("\n\n\n\nRegexNERExtractor entities: ", entities, end="\n\n")
+
+                    context_store = ContextStore(
+                        intent='schedule_meet',
+                        context='appointment',
+                        entities=entities
+                    )
+
+                    print('context', context_store)
+
+                    for arg, arg_props in action_arguments.items():
+                        if arg_props.get('required', False):
+                            if not entities.get(arg):
+                                print(arg_props.get('msg', 'how can i help you'))
+
+
+                    # check if webhook enabled
+
+                    # default response
+
+
                     await manager.send_personal_message("Sorry, I don't have enough information to schedule meeting", websocket)
                     # assistant msg entry
                     chathistory = ChatHistory(
@@ -506,7 +551,6 @@ async def chat_users(
         select(ChatHistory).where(ChatHistory.chatuser == chatuser_uuid)
     ).all()
 
-    print("\n\n\n\n\n\n\n\n\nchat_history: ", chat_history, end="\n\n") 
     if not chat_history:
         return []
     return chat_history 

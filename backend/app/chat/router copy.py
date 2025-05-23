@@ -5,7 +5,16 @@ from fastapi import (
     WebSocketDisconnect,
     HTTPException,
     status,
+    Request
 )
+
+import base64
+from sqlmodel import select, func
+from sqlalchemy.orm import aliased
+
+from fastapi import HTTPException
+from typing import List
+
 from fastapi.responses import HTMLResponse
 from sqlmodel import Session
 from typing import List
@@ -18,380 +27,48 @@ from app.core.auth import get_current_active_user
 from app.core.config import settings
 from app.core.database import get_session
 from app.models.user import User
+from app.models.chathistory import ChatHistory, KnownUser, MessageTypeEnum, FeedbackEnum
 from app.schemas.token import TokenPayload
+from uuid import uuid4, UUID
 
 from ollama import ChatResponse, chat, ResponseError, Client
 import time
 from app.classes.vector_db import VectorDB
 from app.classes.document_embedding import DocumentEmbedder
+from app.classes.base_tool import BaseTool
+from app.classes.template import Template
+from app.classes.greeting import GreetingResponder
+from pathlib import Path
+from setfit import SetFitModel
 
-chat_router = APIRouter()
+from sqlmodel import Session, select
+from app.core.database import get_session
+from app.models.chatbot import Chatbot
 
-def add_two_numbers(a: int, b: int) -> int:
-    """
-    Add two numbers
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
-    Args:
-      a (int): The first number
-      b (int): The second number
+from app.schemas.chathistory import ChatHistoryRead, KnownUserRead
 
-    Returns:
-      int: The sum of the two numbers
-    """
+MODEL_DIR = Path("models")
+model = SetFitModel.from_pretrained(MODEL_DIR / "buybot_setfit_model" / "buybot_setfit_model")
 
-    # The cast is necessary as returned tool call arguments don't always conform exactly to schema
-    # E.g. this would prevent "what is 30 + 12" to produce '3012' instead of 42
-    return int(a) + int(b)
-
-
-def subtract_two_numbers(a: int, b: int) -> int:
-    """
-    Subtract two numbers
-    """
-
-    # The cast is necessary as returned tool call arguments don't always conform exactly to schema
-    return int(a) - int(b)
-
-
-def greeting(query: str) -> int:
-    """
-    tool for greeting query **only. example: Hi, Hello, Hey, Thanks, bye, OK, Good Morning, Good Evning.
-      Args:
-          query (str): The query
-    Returns:
-      (str): The result of the query
-    """
-    return query
-
-
-def retriver(user_query: str) -> str:
-    """
-    tool to get updated information for the user query.
-    Args:
-      user_query (str): The query string to search for relevant documents.
-    Returns:
-      (str): A list of dictionaries containing retrieved documents.
-    """
-    try:
-        # qdrant_manager = QdrantManager()
-        # vector_store = qdrant_manager.get_vector_store("chatbot")
-        # retrieved_docs = vector_store.similarity_search(query, k=2)
-        # return retrieved_docs
-        embedder = DocumentEmbedder()
-        query_embedding = embedder.embedding_model.encode([user_query])[0]
-        vectorDB = VectorDB('1-2b38345c-dda4-476a-bbd9-8724ea4f2851')
-        results = vectorDB.search(query_embedding, top_k=5)
-
-        # Extract matched texts and optional scores
-        hits = [{"text": r.payload.get("text", ""), "score": r.score} for r in results]
-
-        print(hits)
-        # return hits
-
-
-
-        # vectorDB.
-        
-    except Exception as e:
-        print("==========")
-        # return "At 5centsCDN, we are dedicated to delivering premium CDN services at competitive prices, starting from just 5 cents per GB. Our flexible approach means clients can engage with us without the need for long-term commitments or contracts, although we do have nominal setup fees for trial periods. We are proud to have expanded our client base to over 5000 diverse customers, including entities in OTT, IPTV, advertising, gaming, government and non-profit sectors, as well as major television channels.Our robust network features over 70 strategically placed Points of Presence (PoPs) around the globe, ensuring that our customers can easily connect to our standalone network. This expansive network setup minimizes latency, often directly within the ISP networks of end-users. By managing and operating our own network infrastructure, 5centsCDN guarantees a fast, secure, and cost-effective content delivery solution, effectively and reliably connecting your content to audiences worldwide"
-        return f"Opps! Error during retrieving data {e}"
-
-
+chat_router = APIRouter(prefix="/chat", tags=["chat"])
+templates = Jinja2Templates(directory="templates")
+ 
 available_functions = {
     # 'greeting': greeting,
-    "add_two_numbers": add_two_numbers,
-    "subtract_two_numbers": subtract_two_numbers,
-    "retriver": retriver,
+    "add_two_numbers": BaseTool.add_two_numbers,
+    "subtract_two_numbers": BaseTool.subtract_two_numbers,
+    "retriever": BaseTool.retriever,
 }
-
-
-
-
-# HTML template for the chat interface
-html = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>BuyBot Chat</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f5f5f5;
-        }
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            background-color: #4a56e2;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            background-color: white;
-        }
-        .message {
-            padding: 0.75rem 1rem;
-            border-radius: 1rem;
-            max-width: 80%;
-            word-break: break-word;
-        }
-        .user {
-            align-self: flex-end;
-            background-color: #4a56e2;
-            color: white;
-            border-bottom-right-radius: 0.25rem;
-        }
-        .bot {
-            align-self: flex-start;
-            background-color: #e9e9eb;
-            color: #333;
-            border-bottom-left-radius: 0.25rem;
-        }
-        .input-container {
-            display: flex;
-            padding: 1rem;
-            background-color: white;
-            border-top: 1px solid #e0e0e0;
-        }
-        #messageText {
-            flex: 1;
-            padding: 0.75rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 0.5rem;
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
-        button {
-            background-color: #4a56e2;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #3a46c2;
-        }
-        .auth-container {
-            max-width: 400px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-        input[type="email"], input[type="password"] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-        .error-message {
-            color: #e53935;
-            margin-top: 1rem;
-        }
-        .typing-indicator {
-            display: none;
-            align-self: flex-start;
-            background-color: #e9e9eb;
-            color: #333;
-            border-radius: 1rem;
-            padding: 0.75rem 1rem;
-            margin-top: 0.5rem;
-        }
-        .typing-indicator span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #666;
-            border-radius: 50%;
-            animation: typing 1s infinite;
-            margin-right: 3px;
-        }
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        @keyframes typing {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-    </style>
-</head>
-<body>
-    <div id="authContainer" class="auth-container">
-        <h2>Login to Chat</h2>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" placeholder="Enter your email">
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Enter your password">
-        </div>
-        <button id="loginButton">Login</button>
-        <div id="errorMessage" class="error-message"></div>
-    </div>
-
-    <div id="chatContainer" class="chat-container" style="display: none;">
-        <div class="header">
-            FastAPI Chat
-        </div>
-        <div id="messages" class="messages">
-            <div class="message bot">
-                Hello! How can I help you today?
-            </div>
-        </div>
-        <div id="typingIndicator" class="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="input-container">
-            <input type="text" id="messageText" placeholder="Type your message...">
-            <button id="sendButton">Send</button>
-        </div>
-    </div>
-
-    <script>
-        let accessToken = '';
-        let ws = null;
-
-        document.getElementById('loginButton').addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            if (!email || !password) {
-                document.getElementById('errorMessage').textContent = 'Please enter both email and password';
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/v1/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        'username': email,
-                        'password': password,
-                    }),
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    accessToken = data.access_token;
-                    document.getElementById('authContainer').style.display = 'none';
-                    document.getElementById('chatContainer').style.display = 'flex';
-                    connectWebSocket();
-                } else {
-                    document.getElementById('errorMessage').textContent = data.detail || 'Login failed';
-                }
-            } catch (error) {
-                document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
-                console.error('Login error:', error);
-            }
-        });
-
-        function connectWebSocket() {
-            ws = new WebSocket(`ws://${window.location.host}/chat/ws?token=${accessToken}`);
-            
-            ws.onopen = function(event) {
-                console.log('Connection opened');
-            };
-            
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                addMessage(data.message, 'bot');
-                document.getElementById('typingIndicator').style.display = 'none';
-            };
-            
-            ws.onclose = function(event) {
-                console.log('Connection closed');
-                // Attempt to reconnect after a delay
-                setTimeout(connectWebSocket, 3000);
-            };
-            
-            ws.onerror = function(error) {
-                console.error('WebSocket error:', error);
-            };
-        }
-
-        document.getElementById('sendButton').addEventListener('click', sendMessage);
-        document.getElementById('messageText').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        function sendMessage() {
-            const messageInput = document.getElementById('messageText');
-            const message = messageInput.value.trim();
-            
-            if (message && ws && ws.readyState === WebSocket.OPEN) {
-                addMessage(message, 'user');
-                ws.send(JSON.stringify({ message: message }));
-                messageInput.value = '';
-                
-                // Show typing indicator
-                document.getElementById('typingIndicator').style.display = 'block';
-            }
-        }
-
-        function addMessage(message, sender) {
-            const messagesContainer = document.getElementById('messages');
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', sender);
-            messageElement.textContent = message;
-            messagesContainer.appendChild(messageElement);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-    </script>
-</body>
-</html>
-"""
 
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
+        # recognize the user here...
         await websocket.accept()
         self.active_connections.append(websocket)
 
@@ -405,137 +82,311 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@chat_router.get("/chat", response_class=HTMLResponse)
-async def get_chat():
-    """
-    Get the chat UI
-    """
-    return HTMLResponse(content=html)
+@chat_router.get("/{encodedid}", response_class=HTMLResponse)
+async def get_chat(
+    request: Request,
+    encodedid: str,
+    session: Session = Depends(get_session)
+):
+    decoded = base64.b64decode(encodedid).decode('utf-8')
+    part = decoded.split('|')
+    chatbot_uuid = part[0]
+    domain_uuid = part[1]
+    
+    if not chatbot_uuid or not domain_uuid:
+        raise HTTPException(status_code=404, detail="Chatbot not found")
+    
+    try:
+        chatbot = session.exec(
+            select(Chatbot).where(Chatbot.uuid == UUID(chatbot_uuid))
+        ).first()
+    except Exception as e:
+        # print("Error fetching chatbot:", e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    if not chatbot:
+     return HTMLResponse(status_code=404, content="Chatbot not found")
+
+    return templates.TemplateResponse("chatbot.html", {
+        "request": request,
+        "chatbot": chatbot,
+    })
 
 
-@chat_router.websocket("/chat/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str = None):
+@chat_router.websocket("/{encodedid}/ws")
+async def websocket_endpoint(
+    websocket: WebSocket, 
+    encodedid: str,
+    token: UUID,
+    session: Session = Depends(get_session)
+):
     """
     WebSocket endpoint for chat
     """
-    if not token:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
+    decoded = base64.b64decode(encodedid).decode('utf-8')
+    part = decoded.split('|')
+    chatbot_uuid = part[0]
+    domain_uuid = part[1]
+    
+    if not chatbot_uuid or not domain_uuid:
+        raise HTTPException(status_code=404, detail="Chatbot not found")
+    
+    user = session.exec(
+        select(KnownUser)
+        .where(KnownUser.session_uuid == token)
+        .where(KnownUser.chatbot_uuid == UUID(chatbot_uuid))
+    ).first()
 
-    try:
-        # Verify token (simplified for example)
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+    if not user:
+        user = KnownUser(
+            session_uuid=token,
+            chatbot_uuid=UUID(chatbot_uuid),
+            domain_uuid=UUID(domain_uuid),
+            user_data=str({
+                "name": "Unknown",
+                "email": "Unknown",
+                "phone": "Unknown",
+            })
         )
-        token_data = TokenPayload(**payload)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
 
-        if token_data.type != "access":
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-            return
-    except (JWTError, ValidationError):
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
+    chathistory = session.exec(
+        select(ChatHistory).where(ChatHistory.chatuser == user.uuid)
+    ).all()
 
     await manager.connect(websocket)
+    # get chat history form db
+    for history in chathistory:
+        if history.type == MessageTypeEnum.user:
+            await manager.send_personal_message('user: ' + history.msg, websocket)
+        elif history.type == MessageTypeEnum.assistant:
+            await manager.send_personal_message('assistant: ' + history.msg, websocket)
+   
+    chat_history_store = []
     try:
         while True:
             data = await websocket.receive_json()
+            start_time = time.time()
             user_message_str = data.get("message", "")
+            standalone_question = ""
+
             if not user_message_str:
                 continue
-            start_time = time.time()
-            # User message  
-            embedder = DocumentEmbedder()
-            query_embedding = embedder.embedding_model.encode([user_message_str])[0]
-            vectorDB = VectorDB('1-2b38345c-dda4-476a-bbd9-8724ea4f2851')
-            results = vectorDB.search(query_embedding, top_k=5)
 
-            # Extract matched texts and optional scores
-            hits = [{"text": r.payload.get("text", ""), "score": r.score} for r in results]
-            tool_message = [{
-                    "role": "tool",
-                    "name": 'retriver',
-                    "content": str(hits),
-                }]
+            # user msg entry
+            chathistory = ChatHistory(
+                chatuser=user.uuid,
+                type=MessageTypeEnum.user,
+                feedback=FeedbackEnum.neutral,
+                msg=user_message_str,
+            )
+            session.add(chathistory)
+            session.commit()
 
-            print(hits)
-
-
-
-            system_prompt = {
-                "role": "system",
-                "content": "You are an 5centsCDN AI chatbot always use provided tools and formats responses in Markdown with maximum 180 words",
-            }  #
-            # system_prompt_tool = {"role": "system", "content": "You are an AI assistant. If multiple tools are available, you MUST select only the most relevant ONE. Do NOT select multiple tools at once."} #
-            user_message = {"role": "user", "content": user_message_str}
-            # toos_msg = {'role': 'tool', 'content': "At 5centsCDN, we are dedicated to delivering premium CDN services at competitive prices, starting from just 5 cents per GB. Our flexible approach means clients can engage with us without the need for long-term commitments or contracts, although we do have nominal setup fees for trial periods. We are proud to have expanded our client base to over 5000 diverse customers, including entities in OTT, IPTV, advertising, gaming, government and non-profit sectors, as well as major television channels.Our robust network features over 70 strategically placed Points of Presence (PoPs) around the globe, ensuring that our customers can easily connect to our standalone network. This expansive network setup minimizes latency, often directly within the ISP networks of end-users. By managing and operating our own network infrastructure, 5centsCDN guarantees a fast, secure, and cost-effective content delivery solution, effectively and reliably connecting your content to audiences worldwide"}
-            print("\n\nPrompt:", user_message["content"])
-
-            # Prepare messages
-            messages = [system_prompt, user_message]
-
-            # Call the model with tools
-            try:
-                response: ChatResponse = chat(
-                    "llama3.2:1b-instruct-q3_K_L",
-                    messages=messages,
-                    tools=[greeting, add_two_numbers, subtract_two_numbers, retriver],
+            if len(user_message_str) <= 2:
+                await manager.send_personal_message("Hello! How can I help you today?", websocket)
+                # assistant msg entry
+                chathistory = ChatHistory(
+                    chatuser=user.uuid,
+                    type=MessageTypeEnum.assistant,
+                    feedback=FeedbackEnum.neutral,
+                    msg="Hello! How can I help you today?",
                 )
+                session.add(chathistory)
+                session.commit()
+                continue
+
+            responder = GreetingResponder()
+            response = responder.check_greeting(user_message_str)
+            if response:
+                await manager.send_personal_message(response, websocket)
+                continue
+            
+            try:
+                t1 = time.time()
+                predicted_intent = model([user_message_str])
+                print(f"\n\n\n\nSetFitModel Intent ': {predicted_intent} {time.time() - t1} seconds")
+
+                if predicted_intent == 'greeting':
+                    await manager.send_personal_message("Hello! How can I help you today?", websocket)
+                    # assistant msg entry
+                    chathistory = ChatHistory(
+                        chatuser=user.uuid,
+                        type=MessageTypeEnum.assistant,
+                        feedback=FeedbackEnum.neutral,
+                        msg="Hello! How can I help you today?",
+                    )
+                    session.add(chathistory)
+                    session.commit()
+                    continue
+                elif predicted_intent == 'goodbye':
+                    await manager.send_personal_message("Take care, until next time!", websocket)
+                    # assistant msg entry
+                    chathistory = ChatHistory(
+                        chatuser=user.uuid,
+                        type=MessageTypeEnum.assistant,
+                        feedback=FeedbackEnum.neutral,
+                        msg="Take care, until next time!",
+                    )
+                    session.add(chathistory)
+                    session.commit()
+                    continue
+                elif predicted_intent == 'restricted_content':
+                    await manager.send_personal_message("I'm here to help with respectful, safe, and appropriate topics. Let's keep things positive and productive!", websocket)
+                    # assistant msg entry
+                    chathistory = ChatHistory(
+                        chatuser=user.uuid,
+                        type=MessageTypeEnum.assistant,
+                        feedback=FeedbackEnum.neutral,
+                        msg="I'm here to help with respectful, safe, and appropriate topics. Let's keep things positive and productive!",
+                    )
+                    session.add(chathistory)
+                    session.commit()
+                    continue
+                elif predicted_intent == 'schedule_meet':
+                    # entities implementation
+                    await manager.send_personal_message("Sorry, I don't have enough information to schedule meeting", websocket)
+                    # assistant msg entry
+                    chathistory = ChatHistory(
+                        chatuser=user.uuid,
+                        type=MessageTypeEnum.assistant,
+                        feedback=FeedbackEnum.neutral,
+                        msg="Sorry, I don't have enough information to schedule meeting",
+                    )
+                    session.add(chathistory)
+                    session.commit()
+                    continue
+                
+                # Standalone Question Preparation
+                stand = [Template.condense_question_system_template()]
+                for history in chat_history_store:
+                    stand.append(history)
+                stand.append({"role": "user", "content": user_message_str})
+                # print('\n\n stand: ', stand)
+
+                t2 = time.time()
+                standalone_response: ChatResponse = chat(
+                    "gemma3:1b",
+                    # "llama3.2:1b-instruct-q3_K_L",
+                    keep_alive="60m",
+                    messages=stand
+                )
+                standalone_question = standalone_response.message.content
+                print("\ngemma3:1b stanalone Que: ", standalone_question, time.time() - t2, 'seconds')
+
             except ResponseError as e:
                 print("Error:", e.error)
+                await manager.send_personal_message("Error...", websocket)
+                continue
+        
+            # Update chat history with the standalone question
+            user_message = {"role": "user", "content": standalone_question}
+            chat_history_store.append({
+                "role": "user",
+                "content": user_message_str,
+            })
 
-            print("\n\nSelected:", response, end="\n\n")
+            # ////////////// tool calls ////////////////
 
-            if response.message.tool_calls:
-                tool_outputs = []
-                for tool_call in response.message.tool_calls:
-                    function_name = tool_call.function.name
-                    function_args = tool_call.function.arguments
-                    # function_args = {k: int(v) for k, v in function_args.items()}
+            # Call the model with tools
+            # tool_prompt = []
+            # tool_prompt.append(Template.system_prompt_for_tools_intro())
+            # tool_prompt.extend(chat_history_store)
 
-                    if function_to_call := available_functions.get(function_name):
-                        print(
-                            "\n\n == Calling function: ==",
-                            function_name,
-                            "Arguments:",
-                            function_args,
-                            end="\n\n",
-                        )
+            # try:
+            #     t3 = time.time()
+            #     response: ChatResponse = chat(
+            #         "llama3.2:1b-instruct-q3_K_L",
+            #         keep_alive="60m",
+            #         messages=tool_prompt,
+            #         tools=[BaseTool.greeting, BaseTool.add_two_numbers, BaseTool.subtract_two_numbers, BaseTool.retriever],
+            #     )
+            #     print("===Tool response time:", time.time() - t3)
+            # except ResponseError as e:
+            #     print("Error:", e.error)
+            #     await manager.send_personal_message("Error...S", websocket)
+            #     continue
 
-                        if function_name != "greeting":
-                            # if function_name != 'retriver':
-                            result = function_to_call(**function_args)
-                            print("\n\nFunction output:", result, end="\n\n")
-                            tool_outputs.append(
-                                {
-                                    "role": "tool",
-                                    "name": function_name,
-                                    "content": str(result),
-                                }
-                            )
+            # print("\n\nSelected:", response, end="\n\n")
 
-                if tool_outputs:
-                    # Append tool outputs correctly
-                    messages.extend(tool_outputs)
-                    # Explicitly instruct the model to respond based on the tool results
-                    # messages.append({'role': 'user', 'content': 'What is the final answer?'})
-                    # messages.append({'role': 'system', 'content': "Use the provided context of information to answer the question."})
-                    # messages.append({"role": "system", "content": "You are an AI chatbot always formats responses in Markdown."})
+            # messages = [Template.system_prompt_for_output(), user_message]
+            # if response.message.tool_calls:
+            #     tool_outputs = []
+            #     for tool_call in response.message.tool_calls:
+            #         function_name = tool_call.function.name
+            #         function_args = tool_call.function.arguments
+            #         # function_args = {k: int(v) for k, v in function_args.items()}
 
-                print("\n\n **Final Messages:\n", messages, end="\n\n")
+            #         if function_to_call := available_functions.get(function_name):
+            #             print(
+            #                 "\n\n == Calling function: ==",
+            #                 function_name,
+            #                 "Arguments:",
+            #                 function_args,
+            #                 end="\n\n",
+            #             )
 
-                # Get final response
+            #             if function_name != "greeting":
+            #                 # if function_name != 'retriver':
+            #                 result = function_to_call(**function_args)
+            #                 tool_outputs.append(
+            #                     {
+            #                         "role": "tool",
+            #                         "name": function_name,
+            #                         "content": str(result),
+            #                     }
+            #                 )
+
+            #     if tool_outputs:
+            #         messages.extend(tool_outputs)
+
+            #     print("\n\n **Tool used:\n", function_name, end="\n\n")
+            #     print("\n\n **Final Messages:\n", messages, end="\n\n")
+
+                # ////////////// tool calls ////////////////
+
+            # Get final response
+            t3 = time.time()
+            tool_response = BaseTool.retriever(standalone_question)
+            print("\n===Tool response time:", time.time() - t3, 'seconds\n')
+            print("Tool response:\n", tool_response, end="\n\n")
+            tool_message = {
+                "role": "tool",
+                "name": 'retriever',
+                "content": str(tool_response),
+            }
+            messages = [Template.system_prompt_for_output(), tool_message, user_message]
             try:
-                messages.extend(tool_message)
+                t4 = time.time()
                 final_response = chat(
                     "llama3.2:1b-instruct-q3_K_L",
                     messages=messages,
-                    keep_alive="50m",
+                    keep_alive="60m",
                 )
-            except ResponseError as e:
-                print("Error:", e.error)
 
-            print("\n\nFinal response:\n", final_response.message.content)
+                chathistory = ChatHistory(
+                    chatuser=user.uuid,
+                    type=MessageTypeEnum.assistant,
+                    feedback=FeedbackEnum.neutral,
+                    msg=final_response.message.content,
+                )
+                session.add(chathistory)
+                session.commit()
+                print("===LLAMA response time:", time.time() - t4, 'seconds')
+
+                chat_history_store.append({
+                    "role": "assistant",
+                    "content": final_response.message.content,
+                })
+            except ResponseError as e:          
+                print("Error:", e.error)
+                await manager.send_personal_message("Error...S", websocket)
+                continue
+
+            # print("\n\n\n history:", chat_history_store)
+            # print("\n\nFinal response:\n", final_response.message.content)
 
             # for chunk in final_response:
             #   await websocket.send_text(f"{chunk['message']['content']}")
@@ -543,6 +394,119 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
 
             end_time = time.time()
             elapsed_time = end_time - start_time
-            await manager.send_personal_message(final_response.message.content, websocket)
+            await manager.send_personal_message(final_response.message.content + ' **time take:' + str(round(elapsed_time)) +  ' second' , websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+
+# chathistory
+#  auth pending ..
+@chat_router.get("/{chatbot_uuid}/users", response_model=List[KnownUserRead])
+async def read_chat_history(
+    chatbot_uuid: UUID,
+    session: Session = Depends(get_session)
+):
+    user = session.exec(
+        select(KnownUser).where(KnownUser.chatbot_uuid == chatbot_uuid)
+    ).all()
+    if not user:
+        raise HTTPException(status_code=404, detail="not find user")
+    
+    knownUserArr = []
+    for user in user:
+        latest_chat = session.exec(
+            select(ChatHistory).where(ChatHistory.chatuser == user.uuid)
+            .order_by(ChatHistory.timestamp.desc())
+            .limit(1)
+        ).first()
+
+        json_str = user.user_data.replace("'", '"')  # replace single quotes with double quotes
+        user_data = json.loads(json_str)
+
+        print("\n\n\n\nuser_data ankit: ", user_data, end="\n\n")
+        knownUserArr.append(
+            KnownUserRead(
+                uuid=user.uuid,
+                session_uuid=user.session_uuid,
+                domain_uuid=user.domain_uuid,
+                chatbot_uuid=user.chatbot_uuid,
+                user_data=user_data,
+                timestamp=user.timestamp,
+                latest_msg=ChatHistoryRead(
+                    id=latest_chat.id,
+                    chatuser=latest_chat.chatuser,
+                    type=latest_chat.type.value,
+                    msg=latest_chat.msg,
+                    feedback=latest_chat.feedback.value if latest_chat.feedback else None,
+                    timestamp=latest_chat.timestamp,
+                ) if latest_chat else None
+            )
+        )
+    return knownUserArr 
+
+
+# @chat_router.get("/users", response_model=List[KnownUserRead])
+# async def read_chat_history(
+#     chatbot_uuid: UUID,
+#     session: Session = Depends(get_session)
+# ):
+#     # Subquery: latest timestamp per session_uuid
+#     latest_subq = (
+#         select(
+#             ChatHistory.session_uuid,
+#             func.max(ChatHistory.timestamp).label("latest_ts")
+#         ).group_by(ChatHistory.session_uuid)
+#         .subquery()
+#     )
+
+#     # Alias for joining
+#     latest_msg = aliased(ChatHistory)
+
+#     # Main query with JOIN
+#     stmt = (
+#         select(KnownUser, latest_msg)
+#         .join(latest_msg, KnownUser.session_uuid == latest_msg.session_uuid)
+#         .join(latest_subq, (latest_msg.session_uuid == latest_subq.c.session_uuid) &
+#                            (latest_msg.timestamp == latest_subq.c.latest_ts))
+#         .where(KnownUser.chatbot_uuid == chatbot_uuid)
+#     )
+
+#     results = session.exec(stmt).all()
+
+#     if not results:
+#         raise HTTPException(status_code=404, detail="No users found")
+
+#     # Build response manually
+#     return [
+#         KnownUserRead(
+#             session_uuid=user.session_uuid,
+#             domain_uuid=user.domain_uuid,
+#             chatbot_uuid=user.chatbot_uuid,
+#             user_data=user.user_data,
+#             timestamp=user.timestamp,
+#             latest_msg=ChatHistoryRead(
+#                 session_uuid=msg.session_uuid,
+#                 type=msg.type.value,
+#                 msg=msg.msg,
+#                 feedback=msg.feedback.value if msg.feedback else None,
+#                 timestamp=msg.timestamp
+#             )
+#         )
+#         for user, msg in results
+#     ]
+
+
+
+
+@chat_router.get("/{chatbot_uuid}/history/{chatuser_uuid}", response_model=List[ChatHistoryRead])
+async def chat_users(
+    chatuser_uuid: UUID,
+    session: Session = Depends(get_session)
+):
+    chat_history = session.exec(
+        select(ChatHistory).where(ChatHistory.chatuser == chatuser_uuid)
+    ).all()
+
+    if not chat_history:
+        return []
+    return chat_history 

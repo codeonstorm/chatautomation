@@ -18,14 +18,10 @@ class ActionBase(BaseModel):
   name: str
   webhook: bool
   parameters: list[ParameterBase]
-
-
-
+  
 
 # new intent
 class NewIntentBase(BaseModel):
-  service_id: int
-  chatbot_uuid: UUID
   name: str
   description: str | None
   phrases: list[str] | None
@@ -41,5 +37,7 @@ class NewIntentUpdate(NewIntentBase):
 
 class NewIntentRead(NewIntentBase):
   id: int
+  service_id: int
+  chatbot_uuid: UUID
   created_at: datetime
   updated_at: datetime
