@@ -4,13 +4,16 @@ from datetime import datetime
 from typing import Optional
 from app.models.chathistory import FeedbackEnum, MessageTypeEnum
 
+
 class ChatHistoryBase(BaseModel):
     type: MessageTypeEnum
     msg: str
     feedback: Optional[FeedbackEnum] = None
 
+
 class ChatHistoryCreate(ChatHistoryBase):
     pass
+
 
 class ChatHistoryRead(ChatHistoryBase):
     id: int
@@ -24,8 +27,10 @@ class KnownUserBase(BaseModel):
     chatbot_uuid: UUID
     user_data: dict | None
 
+
 class KnownUserCreate(KnownUserBase):
     pass
+
 
 class KnownUserRead(KnownUserBase):
     uuid: UUID

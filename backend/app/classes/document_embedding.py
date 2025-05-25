@@ -15,7 +15,9 @@ from sentence_transformers import SentenceTransformer
 
 
 class DocumentEmbedder:
-    def __init__(self, chunk_size=500, chunk_overlap=100, model_name="all-MiniLM-L6-v2"):
+    def __init__(
+        self, chunk_size=500, chunk_overlap=100, model_name="all-MiniLM-L6-v2"
+    ):
         self.embedding_model = SentenceTransformer(model_name)
         # self.text_splitter = RecursiveCharacterTextSplitter(
         #     chunk_size=chunk_size, chunk_overlap=chunk_overlap

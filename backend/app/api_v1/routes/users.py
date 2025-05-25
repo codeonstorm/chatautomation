@@ -31,21 +31,27 @@ def get_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
-    services: Service = session.exec(select(Service).where(Service.user_id == current_user.id)).all()
+
+    services: Service = session.exec(
+        select(Service).where(Service.user_id == current_user.id)
+    ).all()
 
     result = []
     for i, service in enumerate(services):
         # Assuming service has a plan_id column that references Plan.id
-        result.append({
-            "id": service.id,
-            "plan_id": service.plan_id,
-            "status": service.status,
-            "created_at": service.created_at,
-            "expired_at": service.expired_at,
-            "plan": session.exec(select(Plan).where(Plan.id == service.plan_id)).first()
-        }) 
-    
+        result.append(
+            {
+                "id": service.id,
+                "plan_id": service.plan_id,
+                "status": service.status,
+                "created_at": service.created_at,
+                "expired_at": service.expired_at,
+                "plan": session.exec(
+                    select(Plan).where(Plan.id == service.plan_id)
+                ).first(),
+            }
+        )
+
     return {
         "id": current_user.id,
         "email": current_user.email,
@@ -55,6 +61,6 @@ def get_user(
         "last_login": current_user.last_login,
         "verified": current_user.verified,
         "created_at": current_user.created_at,
-        "services": result
+        "services": result,
         # "plan": plan
     }

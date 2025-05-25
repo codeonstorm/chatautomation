@@ -15,7 +15,7 @@ from app.api_v1.routes import (
     analytics,
     webhooks,
     intents,
-    entities
+    entities,
 )
 
 api_router = APIRouter()

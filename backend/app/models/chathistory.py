@@ -18,6 +18,7 @@ class MessageTypeEnum(str, Enum):
     assistant = "assistant"
     user = "user"
 
+
 class KnownUser(SQLModel, table=True):
     __tablename__ = "known_users"
     uuid: UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -30,11 +31,9 @@ class KnownUser(SQLModel, table=True):
 
 class ChatHistory(SQLModel, table=True):
     __tablename__ = "chathistories"
-    id:int = Field(primary_key=True, index=True)
+    id: int = Field(primary_key=True, index=True)
     chatuser: UUID = Field(foreign_key="known_users.uuid")
     type: MessageTypeEnum = Field(nullable=False, description="assistant or user")
     msg: str = Field(sa_column=Column(LONGTEXT))
     feedback: Optional[FeedbackEnum] = Field(default=None)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
-

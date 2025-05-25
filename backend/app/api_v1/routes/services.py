@@ -31,20 +31,26 @@ def get_services(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
-    services: Service = session.exec(select(Service).where(Service.user_id == current_user.id)).all()
+
+    services: Service = session.exec(
+        select(Service).where(Service.user_id == current_user.id)
+    ).all()
 
     result = []
     for i, service in enumerate(services):
-      result.append({
-        "id": service.id,
-        "plan_id": service.plan_id,
-        "status": service.status,
-        "created_at": service.created_at,
-        "expired_at": service.expired_at,
-        "plan": session.exec(select(Plan).where(Plan.id == service.plan_id)).first()
-      }) 
-    
+        result.append(
+            {
+                "id": service.id,
+                "plan_id": service.plan_id,
+                "status": service.status,
+                "created_at": service.created_at,
+                "expired_at": service.expired_at,
+                "plan": session.exec(
+                    select(Plan).where(Plan.id == service.plan_id)
+                ).first(),
+            }
+        )
+
     return result
 
 
@@ -57,15 +63,15 @@ def get_service(
 ) -> Any:
     if not current_user:
         raise HTTPException(
-          status_code=status.HTTP_404_NOT_FOUND,
-          detail="User not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
         )
-    
+
     service: Service = session.exec(
-      select(Service)
-      .where(Service.user_id == current_user.id)
-      .where(Service.id == service_id)
-      ).first()
+        select(Service)
+        .where(Service.user_id == current_user.id)
+        .where(Service.id == service_id)
+    ).first()
 
     return {
         "id": service.id,
@@ -73,5 +79,5 @@ def get_service(
         "status": service.status,
         "created_at": service.created_at,
         "expired_at": service.expired_at,
-        "plan": session.exec(select(Plan).where(Plan.id == service.plan_id)).first()
-      }
+        "plan": session.exec(select(Plan).where(Plan.id == service.plan_id)).first(),
+    }

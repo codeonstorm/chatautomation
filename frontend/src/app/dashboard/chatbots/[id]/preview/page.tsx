@@ -15,6 +15,9 @@ import { RootState } from "@/redux/store/store"
 import { useSelector } from "react-redux"
 import { getChatbot } from "@/services/chatbot"
 import { useAuth } from "@/context/auth-context"
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import { DarkModeToggle } from "@/components/darkmodetoogle"
 
 export default function ChatbotPreviewPage() {
   const params = useParams()
@@ -70,20 +73,41 @@ export default function ChatbotPreviewPage() {
   }
 
   return (
+        <SidebarInset>
+      <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        {" "}
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Chatbot Traning</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+        <DarkModeToggle />
+      </header>
+
+      <div className="flex-1 flex h-[calc(100vh-4rem)]">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+
     <div className={`container mx-auto py-6 px-4 ${darkMode ? "dark" : ""}`}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => router.back()}>
+          {/* <Button variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
-          </Button>
+          </Button> */}
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{chatbot.name} - Preview</h1>
             <p className="text-muted-foreground">Preview how your chatbot appears on different devices</p>
           </div>
         </div>
-        <Button variant="outline" onClick={() => router.push(`/dashboard/chatbots/edit/${chatbot.id}`)}>
-          Edit Chatbot
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
@@ -386,6 +410,10 @@ export default function ChatbotPreviewPage() {
         </div>
       </div>
     </div>
+
+            </div>
+      </div>
+    </SidebarInset>
   )
 }
 

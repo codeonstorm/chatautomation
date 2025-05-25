@@ -17,18 +17,18 @@ import openpyxl
 import pptx
 import mimetypes
 
+
 class Ingestion:
 
     SUPPORTED_EXTENSIONS = ["docx", "txt", "xlsx", "ppt", "pptx"]
 
-    def __init__(self, taskid:int, service_id: int, chatbot_uuid: UUID):
+    def __init__(self, taskid: int, service_id: int, chatbot_uuid: UUID):
         self.taskid = taskid
         self.service_id = service_id
         self.chatbot_uuid = chatbot_uuid
         self.splitter = DocumentSplitter()
         self.embedder = DocumentEmbedder()
         self.vector_db = VectorDB(f"{str(chatbot_uuid)}")
-
 
     def read_file_content(self, file_path: Path, extension: str):
         """Extract text from various file types."""
@@ -78,7 +78,7 @@ class Ingestion:
         return "\n".join(text)
 
     def ingest(self):
-        db:Session = next(get_session())        
+        db: Session = next(get_session())
         upload_path = Path("uploads") / str(self.service_id)
         file_helper = FileHelper(upload_path)
         files = file_helper.get_file_details()
@@ -120,5 +120,5 @@ class Ingestion:
 
             for chunk, embedding in zip(chunks, embeddings):
                 self.vector_db.insert_vector(embedding.tolist(), chunk)
-        
+
         self.vector_db.close()

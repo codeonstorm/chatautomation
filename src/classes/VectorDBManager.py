@@ -79,7 +79,7 @@ class VectorDBManager:
             logging.error(f"Error getting collections: {e}")
             return []
 
-    def upsert(self, collection_name: str, data: List[Dict[Any, Any]]) -> None:
+    def upsert(self, collection_name: str, data: List[Dict[str, str]]) -> None:
         # Upload the vectors to the collection along with the original text as payload
         self.client.upsert(
             collection_name=collection_name,

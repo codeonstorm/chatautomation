@@ -1,3 +1,4 @@
+'use client'
 import { MessageSquare, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -29,6 +30,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { DarkModeToggle } from "@/components/darkmodetoogle";
+import { useParams } from "next/navigation";
+import { use, useEffect } from "react";
 
 // Sample data for intents
 const intents = [
@@ -70,6 +73,13 @@ const intents = [
 ];
 
 export default function IntentsPage() {
+ const params = useParams()
+ const id = params.id as string; // Assuming id is a string, adjust if necessary
+  // useEffect(() => {
+  //   // const id = params.id;
+  // }, [params.id]);
+
+
   return (
     <SidebarInset>
       <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
@@ -103,7 +113,7 @@ export default function IntentsPage() {
                 </p>
               </div>
               <Button asChild>
-                <Link href="/dashboard/intents/create">
+                <Link href={`/dashboard/chatbots/${id}/intents/create`}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Intent
                 </Link>
@@ -146,17 +156,17 @@ export default function IntentsPage() {
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button asChild variant="ghost" size="sm">
-                              <Link href={`/dashboard/intents/${intent.id}`}>
+                              <Link href={`/dashboard/chatbots/${id}/intents/${intent.id}/edit`}>
                                 Edit
                               </Link>
                             </Button>
-                            <Button asChild variant="ghost" size="sm">
+                            {/* <Button asChild variant="ghost" size="sm">
                               <Link
                                 href={`/dashboard/intents/${intent.id}/train`}
                               >
                                 Train
                               </Link>
-                            </Button>
+                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>

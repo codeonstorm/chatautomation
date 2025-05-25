@@ -1,5 +1,6 @@
 import re
 
+
 class RegexNERExtractor:
     @staticmethod
     def get_patterns():
@@ -8,8 +9,8 @@ class RegexNERExtractor:
         Extend this method to add more entities.
         """
         return {
-            'email': r'\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b',
-            'mobile': r'\b(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?){1,2}\d{4}\b'
+            "email": r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b",
+            "mobile": r"\b(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?){1,2}\d{4}\b",
         }
 
     @staticmethod
@@ -27,6 +28,7 @@ class RegexNERExtractor:
             matches = re.findall(pattern, text)
             results[entity] = matches if matches else None
         return results
+
 
 # Example usage:
 if __name__ == "__main__":

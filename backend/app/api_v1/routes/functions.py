@@ -16,6 +16,7 @@ from app.schemas.user import UserRead
 
 router = APIRouter(prefix="/{service_id}/functions", tags=["functions"])
 
+
 @router.post("", response_model=FunctionRead)
 def create_function(
     service_id: int,
@@ -29,6 +30,7 @@ def create_function(
     session.refresh(db_function)
     return db_function
 
+
 @router.get("/{function_id}", response_model=FunctionRead)
 def read_function(
     service_id: int,
@@ -38,13 +40,13 @@ def read_function(
 ):
     function = session.exec(
         select(Function).where(
-            Function.service_id == service_id,
-            Function.id == function_id
+            Function.service_id == service_id, Function.id == function_id
         )
     ).first()
     if not function:
         raise HTTPException(status_code=404, detail="Function not found")
     return function
+
 
 @router.get("", response_model=List[FunctionRead])
 def read_functions(
@@ -53,6 +55,7 @@ def read_functions(
     current_user: UserRead = Depends(get_current_user),
 ):
     return session.exec(select(Function).where(Function.service_id == service_id)).all()
+
 
 @router.patch("/{function_id}", response_model=FunctionRead)
 def update_function(
@@ -64,8 +67,7 @@ def update_function(
 ):
     function = session.exec(
         select(Function).where(
-            Function.service_id == service_id,
-            Function.id == function_id
+            Function.service_id == service_id, Function.id == function_id
         )
     ).first()
     if not function:
@@ -80,6 +82,7 @@ def update_function(
     session.refresh(function)
     return function
 
+
 @router.delete("/{function_id}", response_model=ResponseSchema)
 def delete_function(
     service_id: int,
@@ -89,8 +92,7 @@ def delete_function(
 ):
     function = session.exec(
         select(Function).where(
-            Function.service_id == service_id,
-            Function.id == function_id
+            Function.service_id == service_id, Function.id == function_id
         )
     ).first()
     if not function:

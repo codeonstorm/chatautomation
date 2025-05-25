@@ -81,7 +81,7 @@ async def check_chunk(
     resumableFilename: str,
     resumableChunkNumber: int,
 ):
-    if not (UPLOAD_DIR / str(service_id)).exists(): 
+    if not (UPLOAD_DIR / str(service_id)).exists():
         os.mkdir(UPLOAD_DIR / str(service_id))
 
     chunk_file = (
@@ -103,7 +103,7 @@ async def upload_chunk(
     chunk = form.get("file")
     filesize = form.get("resumableTotalSize")
 
-    if not (UPLOAD_DIR / str(service_id)).exists(): 
+    if not (UPLOAD_DIR / str(service_id)).exists():
         os.mkdir(UPLOAD_DIR / str(service_id))
 
     if not all([chunk_number, identifier, filename, chunk]):
@@ -120,7 +120,7 @@ async def upload_chunk(
         (UPLOAD_DIR / str(service_id) / f"{identifier}_{i}").exists()
         for i in range(1, total_chunks + 1)
     ):
-    
+
         with open(UPLOAD_DIR / str(service_id) / filename, "wb") as final_file:
             for i in range(1, total_chunks + 1):
                 chunk_file = UPLOAD_DIR / str(service_id) / f"{identifier}_{i}"

@@ -237,7 +237,7 @@ export function ChatbotList() {
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      router.push(`/dashboard/chatbots/train/${bot.uuid}`)
+                      router.push(`/dashboard/chatbots/${bot.uuid}/train`)
                     }
                   >
                     <BookOpen className="h-4 w-4 mr-1" /> Train
@@ -247,7 +247,7 @@ export function ChatbotList() {
                     size="sm"
                     className="text-blue-500 hover:text-blue-700"
                     onClick={() =>
-                      router.push(`/dashboard/chatbots/preview/${bot.uuid}`)
+                      router.push(`/dashboard/chatbots/${bot.uuid}/preview`)
                     }
                   >
                     <Eye className="h-4 w-4 mr-1" /> Preview
@@ -256,7 +256,7 @@ export function ChatbotList() {
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      router.push(`/dashboard/chatbots/history/${bot.uuid}`)
+                      router.push(`/dashboard/chatbots/${bot.uuid}/history`)
                     }
                   >
                     <BookOpen className="h-4 w-4 mr-1" /> Chat History

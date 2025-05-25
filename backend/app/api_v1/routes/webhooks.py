@@ -14,6 +14,7 @@ from app.schemas.user import UserRead
 
 router = APIRouter(prefix="/{service_id}/{chatbot_uuid}/webhook", tags=["webhooks"])
 
+
 @router.post("", response_model=WebhookRead)
 def create_webhook(
     service_id: int,
@@ -27,10 +28,10 @@ def create_webhook(
         description=webhook.description,
         endpoint=webhook.endpoint,
         status=webhook.status,
-        service_id=service_id, 
+        service_id=service_id,
         chatbot_uuid=chatbot_uuid,
         basic_auth=json.dumps(webhook.basic_auth),
-        header=json.dumps(webhook.header)
+        header=json.dumps(webhook.header),
     )
     session.add(db_webhook)
     session.commit()
@@ -46,8 +47,9 @@ def create_webhook(
         header=json.loads(db_webhook.header) if db_webhook.header else {},
         status=db_webhook.status,
         created_at=db_webhook.created_at,
-        updated_at=db_webhook.updated_at
+        updated_at=db_webhook.updated_at,
     )
+
 
 @router.get("", response_model=WebhookRead)
 def read_webhook(
@@ -58,8 +60,7 @@ def read_webhook(
 ):
     webhook = session.exec(
         select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+            Webhook.service_id == service_id, Webhook.chatbot_uuid == chatbot_uuid
         )
     ).first()
     if not webhook:
@@ -75,8 +76,9 @@ def read_webhook(
         header=json.loads(webhook.header) if webhook.header else {},
         status=webhook.status,
         created_at=webhook.created_at,
-        updated_at=webhook.updated_at
+        updated_at=webhook.updated_at,
     )
+
 
 @router.patch("", response_model=WebhookRead)
 def update_webhook(
@@ -88,8 +90,7 @@ def update_webhook(
 ):
     webhook = session.exec(
         select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+            Webhook.service_id == service_id, Webhook.chatbot_uuid == chatbot_uuid
         )
     ).first()
     if not webhook:
@@ -115,8 +116,9 @@ def update_webhook(
         header=json.loads(webhook.header) if webhook.header else {},
         status=webhook.status,
         created_at=webhook.created_at,
-        updated_at=webhook.updated_at
+        updated_at=webhook.updated_at,
     )
+
 
 @router.delete("", response_model=ResponseSchema)
 def delete_webhook(
@@ -127,8 +129,7 @@ def delete_webhook(
 ):
     webhook = session.exec(
         select(Webhook).where(
-            Webhook.service_id == service_id,
-            Webhook.chatbot_uuid == chatbot_uuid
+            Webhook.service_id == service_id, Webhook.chatbot_uuid == chatbot_uuid
         )
     ).first()
     if not webhook:

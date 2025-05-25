@@ -26,6 +26,7 @@ from app.core.security import get_password_hash
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 @router.post("/register", response_model=ResponseSchema)
 def register(
     *,

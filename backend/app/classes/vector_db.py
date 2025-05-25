@@ -45,7 +45,7 @@ class VectorDB:
         """Close Qdrant client connection."""
         self.client.close()
 
-    # new 
+    # new
     def search(self, query_vector, top_k=5):
         """Search for the most similar vectors in the collection."""
         search_result = self.client.search(
@@ -53,10 +53,9 @@ class VectorDB:
             query_vector=query_vector,
             limit=top_k,
             # score_threshold=0.5,
-            search_params=SearchParams(hnsw_ef=128, exact=False)
+            search_params=SearchParams(hnsw_ef=128, exact=False),
         )
         return search_result
-
 
 
 if __name__ == "__main__":

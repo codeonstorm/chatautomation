@@ -1,3 +1,5 @@
+"use client";
+
 import { FileJson, Plus } from "lucide-react"
 import Link from "next/link"
 
@@ -9,6 +11,7 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@radix-ui/react-separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { DarkModeToggle } from "@/components/darkmodetoogle"
+import { useParams } from "next/navigation"
 
 // Sample data for entities
 const entities = [
@@ -50,6 +53,9 @@ const entities = [
 ]
 
 export default function EntitiesPage() {
+  const params = useParams()
+  const id = params.id as string; 
+
   return (
     <SidebarInset>
       <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
@@ -81,7 +87,7 @@ export default function EntitiesPage() {
             <p className="text-muted-foreground">Manage entities for your conversational AI.</p>
           </div>
           <Button asChild>
-            <Link href="/dashboard/entities/create">
+            <Link href={`/dashboard/chatbots/${id}/entities/create`}>
               <Plus className="mr-2 h-4 w-4" />
               Create Entity
             </Link>

@@ -4,17 +4,21 @@ from datetime import datetime
 from app.schemas.enums import UserRoleEnum, StatusEnum
 from app.models.entities import EntityTypeEnum
 
+
 class BaseEntities(BaseModel):
-  name: str
-  description: Optional[str]
-  entity_type: EntityTypeEnum
-  value: dict[str, list[str]] | None
+    name: str
+    description: Optional[str]
+    entity_type: EntityTypeEnum
+    value: dict[str, list[str]] | None
+
 
 class EntitiesCreate(BaseEntities):
-  pass
+    pass
+
 
 class EntitiesUpdate(BaseEntities):
-  pass
+    pass
+
 
 class EntitiesRead(BaseEntities):
-  id: int
+    id: int

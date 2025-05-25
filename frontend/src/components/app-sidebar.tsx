@@ -44,7 +44,7 @@ import { Domain } from "@/types/domain"
 import { useSelector } from 'react-redux';
 import { RootState } from "@/redux/store/store";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { getDomains } from "@/services/domain";
 import { addDomains } from "@/redux/store/features/domain/domain";
@@ -147,29 +147,10 @@ const data = {
       name: "Training Progress",
       url: "/dashboard/chatbots/training",
       icon: Frame,
-    },
-    {
-      name: "Analytics",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Intents",
-      url: "/dashboard/intents",
-      icon: PieChart,
-    },
-    {
-      name: "Entities",
-      url: "/dashboard/entities",
-      icon: PieChart,
-    },
-    {
-      name: "Webhooks",
-      url: "/dashboard/webhooks",
-      icon: PieChart,
-    },
+    }
   ]
 }
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const domains:Domain[] = useSelector((state: RootState) => state.domains);
@@ -178,28 +159,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-    useEffect(() => {
-      if (!isLoading) {
-        if (!isAuthenticated) {
-          router.push("/login");
-        }
 
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push("/login");
+      }
+
+      if (!user) {
+        router.push("/login");
+      }
+
+      const domains = async () => {
         if (!user) {
           router.push("/login");
+          return
         }
-  
-        const domains = async () => {
-          if (!user) {
-            router.push("/login");
-            return
-          }
-          const domains: Domain[] = await getDomains(user.services[0].id);
-          dispatch(addDomains(domains));
-        };
-  
-        domains();
-      }
-    }, [isAuthenticated, isLoading, router]);
+        const domains: Domain[] = await getDomains(user.services[0].id);
+        dispatch(addDomains(domains));
+      };
+
+      domains();
+    }
+  }, [isAuthenticated, isLoading, router]);
 
 
   return (
@@ -209,7 +191,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavProjects baseProjects={data.projects} />
         <SidebarGroup>
           <SidebarGroupLabel>Domains</SidebarGroupLabel>
           <SidebarMenu>

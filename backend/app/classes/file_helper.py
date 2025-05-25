@@ -35,7 +35,7 @@ class FileHelper:
                     {
                         "name": file.name,
                         # "path": str(file.resolve()),
-                        "extension": file.suffix.replace('.', ''),
+                        "extension": file.suffix.replace(".", ""),
                         "size_kb": round(file.stat().st_size / 1024, 2),  # Size in KB
                         "created_at": file.stat().st_birthtime,  # Creation timestamp
                         "modified_at": file.stat().st_mtime,  # Last modified timestamp

@@ -8,4 +8,6 @@ class DocumentSplitter:
         )
 
     def split_text(self, text):
-        return self.splitter.split_text(text)  # Ensure this method exposes the functionality
+        return self.splitter.split_text(
+            text
+        )  # Ensure this method exposes the functionality

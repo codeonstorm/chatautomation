@@ -17,6 +17,8 @@ from tasks.tasks import start_crawl_task
 router = APIRouter(prefix="/{service_id}/webscraper", tags=["webscraper"])
 
 crawl_jobs: Dict[str, Dict] = {}
+
+
 class CrawlRequest(BaseModel):
     url: str
     max_depth: int = 2
@@ -30,12 +32,12 @@ class CrawlRequest(BaseModel):
 # @router.post("")
 # async def start_crawl(
 #     service_id: int,
-#     # request: CrawlRequest, 
+#     # request: CrawlRequest,
 #     url: str,
-#     background_tasks: BackgroundTasks, 
+#     background_tasks: BackgroundTasks,
 #     db: Session = Depends(get_session),
 # ):
-#     tasktracker = TaskStatus(      
+#     tasktracker = TaskStatus(
 #         service_id=service_id,
 #         message_id='',
 #         meta_data='',
@@ -57,7 +59,7 @@ class CrawlRequest(BaseModel):
 
 #     if not job_id.message_id:
 #         raise HTTPException(status_code=400, detail="Failed to retrieve job ID")
-    
+
 #     tasktracker.message_id = job_id.message_id
 #     tasktracker.meta_data = str({
 #             'url': url,
@@ -79,11 +81,11 @@ async def start_crawl(
     db: Session = Depends(get_session),
 ):
     # Step 1: Create a task tracker entry in DB
-    tasktracker = TaskStatus(      
+    tasktracker = TaskStatus(
         service_id=service_id,
         type=TaskTypeEnum.crawl,
-        message_id='',
-        meta_data='',
+        message_id="",
+        meta_data="",
         status=TaskStageEnum.in_queued,
     )
     db.add(tasktracker)
@@ -93,12 +95,12 @@ async def start_crawl(
     # Step 2: Start the crawl task
     try:
         job_id = start_crawl_task.send(
-            service_id=service_id,
-            taskid=tasktracker.id,
-            url=url
+            service_id=service_id, taskid=tasktracker.id, url=url
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start crawl task: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to start crawl task: {str(e)}"
+        )
 
     # Step 3: Check for a valid message ID
     if not getattr(job_id, "message_id", None):
@@ -106,10 +108,12 @@ async def start_crawl(
 
     # Step 4: Update task tracker with message ID and metadata
     tasktracker.message_id = job_id.message_id
-    tasktracker.meta_data = str({
-        'url': url,
-        'job': job_id.__dict__ if hasattr(job_id, '__dict__') else str(job_id)
-    })
+    tasktracker.meta_data = str(
+        {
+            "url": url,
+            "job": job_id.__dict__ if hasattr(job_id, "__dict__") else str(job_id),
+        }
+    )
     db.add(tasktracker)
     db.commit()
 
@@ -119,13 +123,14 @@ async def start_crawl(
     return {"job_id": job_id.message_id, "status": "started"}
 
 
-
 @router.get("", response_model=List[ScrapedUrls])
 async def get_urls(
     service_id: int,
     db: Session = Depends(get_session),
 ):
-    results = db.exec(select(ScrapedUrls).where(ScrapedUrls.service_id == service_id)).all()
+    results = db.exec(
+        select(ScrapedUrls).where(ScrapedUrls.service_id == service_id)
+    ).all()
     if not results:
         raise HTTPException(status_code=404, detail="No URLs found")
     return results
@@ -141,11 +146,10 @@ async def get_progress(
         .where(TaskStatus.service_id == service_id)
         .where(TaskStatus.type == TaskTypeEnum.crawl)
         .order_by(TaskStatus.created_at.desc())
-        ).all()
+    ).all()
     if not results:
         return []
     return results
-
 
 
 @router.delete("/url/{id}", response_model=dict)
@@ -161,15 +165,11 @@ async def delete_url(
     ).first()
     if not results:
         raise HTTPException(status_code=404, detail="No URLs found")
-    
+
     db.delete(results)
     db.commit()
-    
-    return {
-        "url": urlid,
-        "detail": "URL deleted successfully"
-    }
 
+    return {"url": urlid, "detail": "URL deleted successfully"}
 
 
 # @router.get("/stop/{job_id}")

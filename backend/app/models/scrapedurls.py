@@ -5,6 +5,7 @@ from datetime import datetime
 from app.schemas.enums import StatusEnum
 from sqlalchemy import Column, Text
 
+
 class ScrapedUrls(SQLModel, table=True):
     __tablename__ = "srcaped_urls"
     id: int = Field(primary_key=True)

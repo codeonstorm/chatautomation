@@ -4,6 +4,7 @@ from dramatiq.brokers.rabbitmq import RabbitmqBroker
 
 from app.models.taskstatus import TaskStatus, TaskStageEnum
 from sqlmodel import select
+
 # from app.classes.webscraper.crawler import run_advanced_crawler
 
 
@@ -30,8 +31,15 @@ def start_crawl_task(
     # exclude_internal_links: bool = True,
 ):
     print(f"crawler started.. serviceid: {service_id}")
-    # asyncio.run(run_advanced_crawler()) 
+    # asyncio.run(run_advanced_crawler())
     # subprocess.run(["python", "app\classes\webscraper\crawler.py"])
-    subprocess.run(["python", "-m", "app.classes.webscraper.crawler", str(service_id), str(taskid), url])
-
-
+    subprocess.run(
+        [
+            "python",
+            "-m",
+            "app.classes.webscraper.crawler",
+            str(service_id),
+            str(taskid),
+            url,
+        ]
+    )
