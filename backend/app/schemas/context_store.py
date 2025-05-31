@@ -6,4 +6,4 @@ from datetime import datetime
 class ContextStore(BaseModel):
     intent: str
     context: str | None
-    slots: dict[str, list[str] | None] | None  # slot filling entities
+    slots: dict[str, list[str] | None]  # slot filling entities

@@ -43,9 +43,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 // import { toast } from "@/components/ui/use-toast"
 import { Intent } from "@/types/intent.js"
-import { createEntity } from "@/services/entities_service";
+import { createEntity, getEntities } from "@/services/entities_service";
 import { useAuth } from "@/context/auth-context";
 import { createIntent, getIntent, updateIntent } from "@/services/intents_service";
+import { Entity } from "@/types/entity";
 
 export default function CreateIntentPage() {
   const router = useRouter();
@@ -74,6 +75,22 @@ export default function CreateIntentPage() {
   const [selectedValueIndex, setSelectedValueIndex] = useState<number | null>(
     null
   );
+
+const [entities, setEntities] = useState<Entity[]>([])
+useEffect(() => {
+  const fetchEntities = async () => {
+    if (!user || !user.services || user.services.length === 0) {
+      return;
+    }
+    try {
+      const entitieslist:Entity[] = await getEntities(user?.services[0].id, params.id as string);
+      setEntities(entitieslist);
+    } catch (error) {
+      // console.error("Error fetching entities:", error);
+    }
+  };
+  fetchEntities();
+}, [user, params.id]);
 
 useEffect(() => {
   if (!user) return;
@@ -437,11 +454,9 @@ const intentid = params.intentid as string;
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Entities</SelectLabel>
-                              <SelectItem value="Laptop">Laptop</SelectItem>
-                              <SelectItem value="Smartphone">Smartphone</SelectItem>
-                              <SelectItem value="Tablet">Tablet</SelectItem>
-                              <SelectItem value="Headphones">Headphones</SelectItem>
-                              {/* Add more entities as needed */}
+                              {
+                                entities.map(v => (<SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>))
+                              }
                             </SelectGroup>
                           </SelectContent>
                         </Select>

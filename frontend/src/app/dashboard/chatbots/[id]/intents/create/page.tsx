@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bot, Plus, Save, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -43,27 +43,26 @@ import {
 import { Switch } from "@/components/ui/switch";
 // import { toast } from "@/components/ui/use-toast"
 import { Intent } from "@/types/intent.js"
-import { createEntity } from "@/services/entities_service";
+import { createEntity, getEntities } from "@/services/entities_service";
 import { useAuth } from "@/context/auth-context";
 import { createIntent } from "@/services/intents_service";
+import { Entity } from "@/types/entity";
 
 export default function CreateIntentPage() {
   const router = useRouter();
   const params = useParams()
   const { user } = useAuth();
 
-  const [trainingPhrases, setTrainingPhrases] = useState<string[]>([
-    "Hello there",
-    "Hi, how are you?",
-    "Good morning",
-  ]);
+  const [trainingPhrases, setTrainingPhrases] = useState<string[]>([]);
+  // [
+  //   "Hello there",
+  //   "Hi, how are you?",
+  //   "Good morning",
+  // ]
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [newPhrase, setNewPhrase] = useState("");
-  const [responses, setResponses] = useState<string[]>([
-    "Hello! How can I help you today?",
-    "Hi there! What can I do for you?",
-  ]);
+  const [responses, setResponses] = useState<string[]>([]);
   const [newResponse, setNewResponse] = useState("");
   const [newValue, setNewValue] = useState("");
   const [newParamMessage, setNewParamMessage] = useState("");
@@ -71,13 +70,28 @@ export default function CreateIntentPage() {
   const [entityType, setEntityType] = useState("list");
   const [parameters, setParameter] = useState<
     { parameter: string; required: boolean; messages: string[] }[]
-  >([
-    { parameter: "Laptop", required: true, messages: ["Notebook", "Computer"] },
-    { parameter: "Smartphone", required: true, messages: ["Phone", "Mobile", "Cell phone"] },
-  ]);
+  >([]);
+    // { parameter: "Laptop", required: true, messages: ["Notebook", "Computer"] },
+    // { parameter: "Smartphone", required: true, messages: ["Phone", "Mobile", "Cell phone"] },
   const [selectedValueIndex, setSelectedValueIndex] = useState<number | null>(
     null
   );
+
+  const [entities, setEntities] = useState<Entity[]>([])
+  useEffect(() => {
+    const fetchEntities = async () => {
+      if (!user || !user.services || user.services.length === 0) {
+        return;
+      }
+      try {
+        const entitieslist:Entity[] = await getEntities(user?.services[0].id, params.id as string);
+        setEntities(entitieslist);
+      } catch (error) {
+        // console.error("Error fetching entities:", error);
+      }
+    };
+    fetchEntities();
+  }, [user, params.id]);
 
   if (!user) {
     return
@@ -416,12 +430,10 @@ export default function CreateIntentPage() {
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Entities</SelectLabel>
-                              <SelectItem value="Laptop">Laptop</SelectItem>
-                              <SelectItem value="Smartphone">Smartphone</SelectItem>
-                              <SelectItem value="Tablet">Tablet</SelectItem>
-                              <SelectItem value="Headphones">Headphones</SelectItem>
-                              {/* Add more entities as needed */}
-                            </SelectGroup>
+                              {
+                                entities.map(v => (<SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>))
+                              }
+                              </SelectGroup>
                           </SelectContent>
                         </Select>
                         <Button type="button" onClick={addEntityValue}>

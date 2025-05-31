@@ -176,9 +176,9 @@ async def websocket_endpoint(
     await manager.connect(websocket)
     # get chat history form db
     for history in chathistory:
-        if history.type == MessageTypeEnum.user:
+        if history.type == MessageTypeEnum.user and history.msg:
             await manager.send_personal_message("user: " + history.msg, websocket)
-        elif history.type == MessageTypeEnum.assistant:
+        elif history.type == MessageTypeEnum.assistant and history.msg:
             await manager.send_personal_message("assistant: " + history.msg, websocket)
 
     # Initialize chat flow

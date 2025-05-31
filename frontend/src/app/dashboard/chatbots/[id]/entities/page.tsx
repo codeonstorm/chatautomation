@@ -49,7 +49,6 @@ export default function EntitiesPage() {
     };
 
     fetchEntities();
-    console.log(entities)
   }, [user, id]);
 
   const handleDelete = async (entityId: string) => {
