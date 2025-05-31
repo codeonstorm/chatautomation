@@ -1,0 +1,11 @@
+
+URL: https://guides.5centscdn.net/guides/dc5421a5-844a-476e-9501-4fd881cc8bca
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How to enable HTTP to HTTPS redirect using edge rules?
+Click on HTTP Pull to enter the pull zone area
+1/8
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

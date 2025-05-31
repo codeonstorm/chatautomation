@@ -1,0 +1,9 @@
+
+URL: https://guides.5centscdn.net/guides/fdca2ba4-a7e8-4c0a-be51-54e9d70dda46
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How to add CNAME?
+The CNAME record is also known as the canonical name record. It is used for specifying that a domain name is an alias for another domain, the “canonical” domain. A typical example is the www subdomain which is often set as an alias to the root domain name The CNAME record is used only for subdomains. You can’t add any other records for a given hostname if this hostname has a CNAME Record. Also, it’s not possible to create a CNAME record if there are any other records for this hostname.
+Aa
+
+---

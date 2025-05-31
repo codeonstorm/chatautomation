@@ -1,0 +1,15 @@
+
+URL: https://guides.5centscdn.net/categories/scheduled-playlist
+Depth: 1
+[](https://guides.5centscdn.net/)
+[Go to 5centsCDN](https://www.5centscdn.net/?ref=guidejar)[5centsCDN](https://www.5centscdn.net/?ref=guidejar)
+## Hi, how can we help you? 👋
+  * [All Categories](https://guides.5centscdn.net/)
+  * Scheduled Playlist 📻
+
+
+## Scheduled Playlist 📻
+Create and manage automated playlists for video streaming, allowing for scheduled playback of content in a specific order.
+### [How to create a Scheduled playlist stream? 26 steps](https://guides.5centscdn.net/guides/1f6a28b9-5261-4279-8a28-65c4e7498715)
+
+---

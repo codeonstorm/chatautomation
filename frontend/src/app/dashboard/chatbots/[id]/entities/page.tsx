@@ -1,6 +1,6 @@
 "use client";
 
-import { FileJson, Plus } from "lucide-react"
+import { FileJson, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -12,49 +12,55 @@ import { Separator } from "@radix-ui/react-separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { DarkModeToggle } from "@/components/darkmodetoogle"
 import { useParams } from "next/navigation"
+import { use, useEffect, useState } from "react";
+import { useAuth } from "@/context/auth-context";
+import { deleteEntity, getEntities } from "@/services/entities_service";
+import { Entity } from "@/types/entity";
 
-// Sample data for entities
-const entities = [
-  {
-    id: "1",
-    name: "Product",
-    type: "List",
-    values: 24,
-    lastUpdated: "3 days ago",
-  },
-  {
-    id: "2",
-    name: "OrderID",
-    type: "Pattern",
-    values: 1,
-    lastUpdated: "1 week ago",
-  },
-  {
-    id: "3",
-    name: "Date",
-    type: "System",
-    values: "Built-in",
-    lastUpdated: "N/A",
-  },
-  {
-    id: "4",
-    name: "Location",
-    type: "List",
-    values: 15,
-    lastUpdated: "2 days ago",
-  },
-  {
-    id: "5",
-    name: "Price",
-    type: "Pattern",
-    values: 1,
-    lastUpdated: "5 days ago",
-  },
-]
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function EntitiesPage() {
-  const params = useParams()
-  const id = params.id as string; 
+  const { user } = useAuth();
+  const params = useParams();
+  const id = params.id as string;
+  const [entities, setEntities] = useState<Entity[]>([])
+
+  useEffect(() => {
+    const fetchEntities = async () => {
+      if (!user || !user.services || user.services.length === 0) {
+        return;
+      }
+      try {
+        const entitieslist:Entity[] = await getEntities(user?.services[0].id, id);
+        setEntities(entitieslist);
+      } catch (error) {
+        // console.error("Error fetching entities:", error);
+      }
+    };
+
+    fetchEntities();
+    console.log(entities)
+  }, [user, id]);
+
+  const handleDelete = async (entityId: string) => {
+    if (!user || !user.services || user.services.length === 0) return;
+    try {
+      await deleteEntity(user?.services[0].id, id, entityId)
+      setEntities((prev) => prev.filter((entity) => entityId != entityId));
+    } catch (error) {
+      // Optionally handle error
+    }
+  };
 
   return (
     <SidebarInset>
@@ -109,7 +115,7 @@ export default function EntitiesPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Values</TableHead>
-                  <TableHead>Last Updated</TableHead>
+                  {/* <TableHead>Last Updated</TableHead> */}
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -122,14 +128,43 @@ export default function EntitiesPage() {
                         {entity.name}
                       </div>
                     </TableCell>
-                    <TableCell>{entity.type}</TableCell>
-                    <TableCell>{entity.values}</TableCell>
-                    <TableCell>{entity.lastUpdated}</TableCell>
+                    <TableCell>{entity.entity_type}</TableCell>
+                    <TableCell>{entity.value && Object.keys(entity.value).length}</TableCell>
+                    {/* <TableCell>{entity.lastUpdated}</TableCell> */}
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button asChild variant="ghost" size="sm">
-                          <Link href={`/dashboard/entities/${entity.id}`}>Edit</Link>
+                          <Link href={`/dashboard/chatbots/${id}/entities/edit/${entity.id}`}>Edit</Link>
                         </Button>
+                                          <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" /> Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete the chatbot and all its data.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(String(entity.id))}
+                          className="bg-red-500 hover:bg-red-700"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>

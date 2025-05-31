@@ -2,9 +2,9 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,10 +30,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { createEntity, getEntity } from "@/services/entities_service";
+import { useAuth } from "@/context/auth-context";
 // import { toast } from "@/components/ui/use-toast"
 
 export default function CreateEntityPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const params = useParams()
   const [entityType, setEntityType] = useState("list");
   const [entityValues, setEntityValues] = useState<
     { value: string; synonyms: string[] }[]
@@ -46,6 +50,25 @@ export default function CreateEntityPage() {
   const [selectedValueIndex, setSelectedValueIndex] = useState<number | null>(
     null
   );
+  const [entityName, setEntityName] = useState("");
+  const [entityDescription, setEntityDescription] = useState("");
+  const [patternValue, setPatternValue] = useState("");
+  const chatbot_uuid = params.id as string;
+  const serviceid = user?.services[0].id; 
+
+  //  useEffect(() => {
+  //    if (!user) return;
+ 
+  //    const fetchEntity = async () => {
+  //      try {
+  //       await getEntity(user.services[0].id, params.id as string);
+  //      } catch (err) {
+  //        console.log("No webhook found or failed to load", err);
+  //      }
+  //    };
+ 
+  //    fetchEntity();
+  //  }, [user, params.id]);
 
   const addEntityValue = () => {
     if (newValue.trim()) {
@@ -54,10 +77,6 @@ export default function CreateEntityPage() {
         { value: newValue.trim(), synonyms: [] },
       ]);
       setNewValue("");
-      // toast({
-      //   title: "Entity value added",
-      //   description: "Your entity value has been added successfully.",
-      // })
     }
   };
 
@@ -74,10 +93,6 @@ export default function CreateEntityPage() {
       updatedValues[selectedValueIndex].synonyms.push(newSynonym.trim());
       setEntityValues(updatedValues);
       setNewSynonym("");
-      // toast({
-      //   title: "Synonym added",
-      //   description: "Your synonym has been added successfully.",
-      // })
     }
   };
 
@@ -89,13 +104,46 @@ export default function CreateEntityPage() {
     setEntityValues(updatedValues);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if(!serviceid) return
+    var data = {}
+
+    var filteredEntity: Record<string, string[]> = {};
+    entityValues.forEach(item => {
+      filteredEntity[item.value] = item.synonyms;
+    });
+
+    if (entityType == 'list') {
+      data = {
+        name: entityName,
+        description: entityDescription,
+        entity_type: entityType,
+        value: filteredEntity,
+      }
+
+    } else if (entityType == 'pattern') {
+      data = {
+        name: entityName,
+        description: entityDescription,
+        entity_type: entityType,
+        value: {'regex': [patternValue]},
+      }
+    } else {
+      alert('this feature not available. come in future')
+      return
+    }
+
+    try {
+      await createEntity(serviceid, chatbot_uuid, data)
+      router.push(`/dashboard/chatbots/${chatbot_uuid}/entities`);
+    } catch (error) {
+      console.error("Error creating entity:", error);
+    }
     // toast({
     //   title: "Entity created",
     //   description: "Your entity has been created successfully.",
     // })
-    router.push("/dashboard/entities");
   };
 
   return (
@@ -148,6 +196,8 @@ export default function CreateEntityPage() {
                         id="name"
                         placeholder="e.g., Product, Location, Date"
                         required
+                        value={entityName}
+                        onChange={(e) => setEntityName(e.target.value)}
                       />
                     </div>
                     <div className="grid gap-2">
@@ -156,6 +206,8 @@ export default function CreateEntityPage() {
                         id="description"
                         placeholder="Describe what this entity is for..."
                         className="min-h-[100px]"
+                        value={entityDescription}
+                        onChange={(e) => setEntityDescription(e.target.value)}
                       />
                     </div>
                   </CardContent>
@@ -373,7 +425,9 @@ export default function CreateEntityPage() {
                         </Label>
                         <Input
                           id="pattern"
-                          placeholder="e.g., [A-Z]{2}[0-9]{4}"
+                          placeholder="e.g., [A-Z]{2}[0-9]{4}"  
+                          onChange={(e) =>
+                            setPatternValue(e.target.value)}
                         />
                       </div>
                       <div className="rounded-md bg-muted p-4">

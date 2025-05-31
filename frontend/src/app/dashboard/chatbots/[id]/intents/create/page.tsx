@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState } from "react";
 import { Bot, Plus, Save, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,21 +30,60 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@radix-ui/react-separator";
 import { DarkModeToggle } from "@/components/darkmodetoogle";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 // import { toast } from "@/components/ui/use-toast"
+import { Intent } from "@/types/intent.js"
+import { createEntity } from "@/services/entities_service";
+import { useAuth } from "@/context/auth-context";
+import { createIntent } from "@/services/intents_service";
 
 export default function CreateIntentPage() {
   const router = useRouter();
+  const params = useParams()
+  const { user } = useAuth();
+
   const [trainingPhrases, setTrainingPhrases] = useState<string[]>([
     "Hello there",
     "Hi, how are you?",
     "Good morning",
   ]);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [newPhrase, setNewPhrase] = useState("");
   const [responses, setResponses] = useState<string[]>([
     "Hello! How can I help you today?",
     "Hi there! What can I do for you?",
   ]);
   const [newResponse, setNewResponse] = useState("");
+  const [newValue, setNewValue] = useState("");
+  const [newParamMessage, setNewParamMessage] = useState("");
+
+  const [entityType, setEntityType] = useState("list");
+  const [parameters, setParameter] = useState<
+    { parameter: string; required: boolean; messages: string[] }[]
+  >([
+    { parameter: "Laptop", required: true, messages: ["Notebook", "Computer"] },
+    { parameter: "Smartphone", required: true, messages: ["Phone", "Mobile", "Cell phone"] },
+  ]);
+  const [selectedValueIndex, setSelectedValueIndex] = useState<number | null>(
+    null
+  );
+
+  if (!user) {
+    return
+  }
+  const serviceid = user.services[0].id; 
+  const chatbot_uuid = params.id as string;
 
   const addTrainingPhrase = () => {
     if (newPhrase.trim()) {
@@ -76,14 +115,80 @@ export default function CreateIntentPage() {
     setResponses(responses.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const filteredParam = parameters.map(v => ({
+      parameter: v.parameter,
+      required: v.required,
+      message: v.messages[0]
+    }));
+
+    var data = {
+      name,
+      description,
+      "phrases": trainingPhrases,
+      "default_intent_responses": responses,
+      "action": {
+        "name": "string",
+        "webhook": true,
+        "parameters": [
+          ...filteredParam
+        ]
+      }
+
+    }
+   
+    try {
+      await createIntent(serviceid, chatbot_uuid, data)
+      router.push(`/dashboard/chatbots/${chatbot_uuid}/intents`);
+    } catch (error) {
+      console.log(error)
+    }
+
+    console.log(data)
     // toast({
     //   title: "Intent created",
     //   description: "Your intent has been created successfully.",
     // })
-    router.push("/dashboard/intents");
+    // router.push("/dashboard/intents");
   };
+
+  // =========
+    const addEntityValue = () => {
+    if (newValue.trim()) {
+      setParameter([
+        ...parameters,
+        { parameter: newValue.trim(), required: false, messages: [] },
+      ]);
+      setNewValue("");
+    }
+  };
+
+  const addValidatioMessage = () => {
+    if (selectedValueIndex !== null && newParamMessage.trim()) {
+      const updatedValues = [...parameters];
+      updatedValues[selectedValueIndex].messages.push(newParamMessage.trim());
+      setParameter(updatedValues);
+      setNewParamMessage("");
+    }
+  };
+
+  const removeParamMessage = (valueIndex: number, synonymIndex: number) => {
+    const updatedValues = [...parameters];
+    updatedValues[valueIndex].messages = updatedValues[
+      valueIndex
+    ].messages.filter((_, i) => i !== synonymIndex);
+    setParameter(updatedValues);
+  };
+
+  const removeEntityValue = (index: number) => {
+    setParameter(parameters.filter((_, i) => i !== index));
+    if (selectedValueIndex === index) {
+      setSelectedValueIndex(null);
+    }
+  };
+
 
   return (
     <SidebarInset>
@@ -134,7 +239,9 @@ export default function CreateIntentPage() {
                       <Input
                         id="name"
                         placeholder="e.g., Greeting, Order Status"
+                        value={name}
                         required
+                        onChange={(e) =>setName(e.target.value)}
                       />
                     </div>
                     <div className="grid gap-2">
@@ -143,6 +250,8 @@ export default function CreateIntentPage() {
                         id="description"
                         placeholder="Describe what this intent is for..."
                         className="min-h-[100px]"
+                        value={description}
+                        onChange={(e) =>setDescription(e.target.value)}
                       />
                     </div>
                   </CardContent>
@@ -152,7 +261,7 @@ export default function CreateIntentPage() {
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="training">Training Phrases</TabsTrigger>
                     <TabsTrigger value="responses">Responses</TabsTrigger>
-                    <TabsTrigger value="parameters">Parameters</TabsTrigger>
+                    <TabsTrigger value="parameters">Action & Parameters</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="training" className="space-y-4 pt-4">
@@ -267,27 +376,185 @@ export default function CreateIntentPage() {
                   </TabsContent>
 
                   <TabsContent value="parameters" className="space-y-4 pt-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Parameters</CardTitle>
-                        <CardDescription>
-                          Define parameters that can be extracted from user
-                          input.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex h-40 items-center justify-center rounded-md border border-dashed">
-                          <div className="flex flex-col items-center gap-1 text-center">
-                            <Plus className="h-4 w-4 text-muted-foreground" />
-                            <p className="text-sm font-medium">Add Parameter</p>
-                            <p className="text-xs text-muted-foreground">
-                              Parameters help extract specific data from user
-                              input
-                            </p>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Add Action & Prameters</CardTitle>
+                      <CardDescription>
+                        Add action & parameters to compete task.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="action-name">Action</Label>
+                        <Input
+                          id="action-name"
+                          placeholder="Add Action name"
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Label htmlFor="sentiment-analysis" className="flex items-center gap-2">
+                        <Switch
+                          id="sentiment-analysis"
+                          // checked={sentimentAnalysis}
+                          // onCheckedChange={handleSentimentAnalysisChange}
+                        />
+                          Enable Webhook
+                        </Label>
+
+                      </div>
+
+                      <div className="flex gap-2 pt-8">
+                        {/* <Label htmlFor="entity-select">Select Entity for Parameter</Label> */}
+                        <Select
+                          value={newValue}
+                          onValueChange={(value) => setNewValue(value)}
+                        >
+                          <SelectTrigger id="entity-select" className="w-[200px]">
+                            <SelectValue placeholder="Select an entity..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Entities</SelectLabel>
+                              <SelectItem value="Laptop">Laptop</SelectItem>
+                              <SelectItem value="Smartphone">Smartphone</SelectItem>
+                              <SelectItem value="Tablet">Tablet</SelectItem>
+                              <SelectItem value="Headphones">Headphones</SelectItem>
+                              {/* Add more entities as needed */}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <Button type="button" onClick={addEntityValue}>
+                          <Plus className="h-4 w-4" />
+                          <span className="sr-only">Add</span>
+                        </Button>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium">Parameters</h3>
+                          <div className="space-y-2">
+                            {parameters.map((value, index) => (
+                              <div
+                                key={index}
+                                className={`flex items-center justify-between rounded-md border p-3 ${
+                                  selectedValueIndex === index
+                                    ? "border-primary"
+                                    : ""
+                                }`}
+                                onClick={() => setSelectedValueIndex(index)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span>{value.parameter}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    ({value.messages.length} Default replies)
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1">
+                                  <Checkbox
+                                    checked={value.required}
+                                    onCheckedChange={(checked) => {
+                                    const updated = [...parameters];
+                                    updated[index].required = !!checked;
+                                    setParameter(updated);
+                                    }}
+                                    id={`required-checkbox-${index}`}
+                                  />
+                                  <label
+                                    htmlFor={`required-checkbox-${index}`}
+                                    className="text-xs text-muted-foreground cursor-pointer"
+                                    title="Check if this parameter is required for the action"
+                                  >
+                                    Required
+                                  </label>
+                                  </div>
+                                  <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeEntityValue(index);
+                                  }}
+                                  title="Remove this parameter"
+                                  >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">Remove</span>
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+
+                        <div className="space-y-2">
+                          <h3 className="text-sm font-medium">Default replies (Check required option to add default reply)</h3>
+                          {selectedValueIndex !== null ? (
+                            <div className="space-y-2">
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="Add a reply..."
+                                  value={newParamMessage}
+                                  onChange={(e) =>
+                                    setNewParamMessage(e.target.value)
+                                  }
+                                  onKeyDown={(e) =>
+                                    e.key === "Enter" && addValidatioMessage()
+                                  }
+                                />
+                                <Button type="button" onClick={addValidatioMessage}>
+                                  <Plus className="h-4 w-4" />
+                                  <span className="sr-only">Add</span>
+                                </Button>
+                              </div>
+
+                              <div className="space-y-2">
+                                {parameters[selectedValueIndex].required && parameters[selectedValueIndex].messages.slice(0, 1).map(
+                                  (message, synIndex) => (
+                                    <div
+                                      key={synIndex}
+                                      className="flex items-center justify-between rounded-md border p-3"
+                                    >
+                                      <span>{message}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                          removeParamMessage(
+                                            selectedValueIndex,
+                                            synIndex
+                                          )
+                                        }
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                        <span className="sr-only">Remove</span>
+                                      </Button>
+                                    </div>
+                                  )
+                                )}
+
+                                {parameters[selectedValueIndex].messages
+                                  .length === 0 && (
+                                  <div className="rounded-md border border-dashed p-3 text-center text-sm text-muted-foreground">
+                                    No Default replies added yet
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded-md border border-dashed p-3 text-center text-sm text-muted-foreground">
+                              Select a parameter to add Default replies
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <div className="text-sm text-muted-foreground">
+                        Paramter help your bot to collect data from user require to perfom action.
+                      </div>
+                    </CardFooter>
+                  </Card>
                   </TabsContent>
                 </Tabs>
 

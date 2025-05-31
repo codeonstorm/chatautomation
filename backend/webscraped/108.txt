@@ -1,0 +1,11 @@
+
+URL: https://guides.5centscdn.net/guides/32e5f538-4bbc-4b95-94b6-4dedf9ee3a7d
+Depth: 2
+[](https://guides.5centscdn.net/)
+# Where can I find 5centsCDN name servers (NS) hostnames to point my domain?
+Click on "DNS"
+1/6
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

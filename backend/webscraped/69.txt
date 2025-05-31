@@ -1,0 +1,15 @@
+
+URL: https://guides.5centscdn.net/categories/video-manager
+Depth: 1
+[](https://guides.5centscdn.net/)
+[Go to 5centsCDN](https://www.5centscdn.net/?ref=guidejar)[5centsCDN](https://www.5centscdn.net/?ref=guidejar)
+## Hi, how can we help you? 👋
+  * [All Categories](https://guides.5centscdn.net/)
+  * 5centsCDN Video Manager 📼
+
+
+## 5centsCDN Video Manager 📼
+A tool for managing and organizing your video content, enabling easy access, categorization, and delivery of media.
+### [How to upload video files to Video Manager? 8 steps](https://guides.5centscdn.net/guides/ad52fbcd-14bf-4606-96f4-6e67d03379f7)### [How to create a project in Video Manager? Video Manager allows us to upload videos to the cloud and schedule them as playlists. The playlist can be embedded on the clients’ websites. The users can then watch the videos from the playlist. In a video manager, the root is known as a project. 5centsCDN’s control panel requires the creation of a project before setting up the video manager. Video uploads and playlist creation can be created within the project. 8 steps](https://guides.5centscdn.net/guides/b48232bf-bef4-4494-9d89-b6e7d10cf203)### [How to create a Manual Playlist? A manual playlist is one where you choose the exact videos you want in the list. 19 steps](https://guides.5centscdn.net/guides/05f54300-c50b-4a42-adc8-09ba408220de)### [How to create Categories for the files? Categories can be used to categorize videos within a workspace and are useful for creating dynamic playlists. Depending on the category, we can easily add videos to the dynamic playlist. Follow the steps to create a category in Video Manager, 15 steps](https://guides.5centscdn.net/guides/f2c5f780-1145-4db4-a0f9-cb607b850374)### [How can I manage/customize video details and settings in Video Manager? 19 steps](https://guides.5centscdn.net/guides/f7dfdc47-f397-428b-a9b4-1fe0b7a926ac)### [How can I preview and customize the embed code with different player skins in Video Manager? 12 steps](https://guides.5centscdn.net/guides/8dad540f-2ada-4825-a7c5-fdcd1bfde803)### [How can I set up an auto-transcoding profile? You can make your own profile if you do not want to use the default auto transcoding profile. Please follow the steps to create a new profile, 15 steps](https://guides.5centscdn.net/guides/14f43394-79c5-4f7a-8fd8-078b3aba065f)
+
+---

@@ -3,6 +3,8 @@
 import { useParams } from 'next/navigation'
 import { useMemo } from 'react'
 import {
+  MessageSquare,
+  MessageCircleReplyIcon,
   TagIcon,
   BotIcon,
   CodeIcon,
@@ -52,7 +54,7 @@ export function NavProjects({
         {
           name: 'Intents',
           url: `/dashboard/chatbots/${params.id}/intents`,
-          icon: SettingsIcon,
+          icon: MessageSquare,
         },
         {
           name: 'Entities',
@@ -93,6 +95,11 @@ export function NavProjects({
           name: 'Embed Code',
           url: `/dashboard/chatbots/${params.id}/embedcode`,
           icon: CodeIcon,
+        },
+        {
+          name: 'Live Chat',
+          url: `/dashboard/chatbots/${params.id}/livechat`,
+          icon: MessageCircleReplyIcon,
         },
         ...baseProjects,
       ]

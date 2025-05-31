@@ -1,0 +1,15 @@
+
+URL: https://guides.5centscdn.net/categories/network-security
+Depth: 1
+[](https://guides.5centscdn.net/)
+[Go to 5centsCDN](https://www.5centscdn.net/?ref=guidejar)[5centsCDN](https://www.5centscdn.net/?ref=guidejar)
+## Hi, how can we help you? 👋
+  * [All Categories](https://guides.5centscdn.net/)
+  * Network & Security 🛜
+
+
+## Network & Security 🛜
+Protect your content from threats with advanced security features such as Domain Lock, IP Access Control, Secure Token Authentication, and more, ensuring safe and secure content delivery.
+### [How to enable Secure Token and how it works Secure Token is one of the enhanced security feature addon provided by 5centsCDN. Secure Token allows you to generate secured playback links with an expiration time. Once a token has expired, it is not possible anymore to access the content with it. This will make your content secure to a great extend and prevent playback URL theft. 15 steps](https://guides.5centscdn.net/guides/15ad8e13-a6a5-4627-b756-26a236f61edc)### [How do I enable User Agent? 12 steps](https://guides.5centscdn.net/guides/eddf2ac3-db9e-47fb-bd4d-b93ee731be73)### [How do I enable Geo Block and manage blocking or allowing specific countries? 12 steps](https://guides.5centscdn.net/guides/68e65f17-dcd7-40b2-a23b-c79c5bd1241b)### [How do I enable Domain Lock and whitelist or block specific domains? 15 steps](https://guides.5centscdn.net/guides/3949c9f6-955e-40ee-937f-7f535c925b08)### [How do I enable IP access and allow or block specific IPs? 12 steps](https://guides.5centscdn.net/guides/345b7941-a63d-4f03-a05e-399b3abab168)
+
+---

@@ -1,0 +1,15 @@
+
+URL: https://guides.5centscdn.net/categories/ssl
+Depth: 1
+[](https://guides.5centscdn.net/)
+[Go to 5centsCDN](https://www.5centscdn.net/?ref=guidejar)[5centsCDN](https://www.5centscdn.net/?ref=guidejar)
+## Hi, how can we help you? 👋
+  * [All Categories](https://guides.5centscdn.net/)
+  * SSL 🔒
+
+
+## SSL 🔒
+Secure your content delivery with SSL encryption, ensuring a safe and encrypted connection between your users and the CDN.
+### [How to manage Account Level SSL certificates? 5centsCDN has released a new Account level SSL Certificates Management feature which will be a user-friendly feature in managing your SSL certificates. The main advantage of this feature is that you do not have to worry about uploading SSL certificates for each and every CDN resources instead, you can choose a certificate which needs to be uploaded only once and forget. Once this process is done with, you will get an option to use this installed SSL with your CDN zones.  6 steps](https://guides.5centscdn.net/guides/fa76f896-63d7-409d-9910-e058459e12fc)### [How to integrate SSL for your Zone? 5centsCDN offers 3 ways to implement SSL for your Zones to ensure secure communication over the Internet. They are Shared SSL, Free SSL and Custom SSL. To enable the SSL for your zone please follow the below steps 8 steps](https://guides.5centscdn.net/guides/e6df769a-df1c-44a5-80ec-5be92739aeac)
+
+---

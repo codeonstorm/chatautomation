@@ -1,0 +1,16 @@
+
+URL: https://guides.5centscdn.net/categories/video-player
+Depth: 1
+[](https://guides.5centscdn.net/)
+[Go to 5centsCDN](https://www.5centscdn.net/?ref=guidejar)[5centsCDN](https://www.5centscdn.net/?ref=guidejar)
+## Hi, how can we help you? 👋
+  * [All Categories](https://guides.5centscdn.net/)
+  * 5centsCDN Video Player 🎥
+
+
+## 5centsCDN Video Player 🎥
+A customizable video player integrated with the CDN, ensuring smooth playback across all devices, with advanced analytics to track viewer engagement, performance, and detailed insights.
+### [ANALYTICS](https://guides.5centscdn.net/categories/video-player/analytics)### [LEARNING GUIDE](https://guides.5centscdn.net/categories/video-player/learningguide)### [SECURITY](https://guides.5centscdn.net/categories/video-player/security)### [QUERY PARAMETERS](https://guides.5centscdn.net/categories/video-player/queryparameters)### [GENERATE PLAYER CODE](https://guides.5centscdn.net/categories/video-player/generateplayercode)
+### [How to create a Video Player? 9 steps](https://guides.5centscdn.net/guides/7f4021fc-db7d-4a94-b6fb-bef902486e66)### [How to access 5centsCDN player analytics? 6 steps](https://guides.5centscdn.net/guides/1a38b5b9-d59e-41ff-b006-a6797964da56)
+
+---

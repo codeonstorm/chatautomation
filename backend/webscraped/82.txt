@@ -1,0 +1,15 @@
+
+URL: https://guides.5centscdn.net/categories/video-player/analytics
+Depth: 2
+[](https://guides.5centscdn.net/)
+[Go to 5centsCDN](https://www.5centscdn.net/?ref=guidejar)[5centsCDN](https://www.5centscdn.net/?ref=guidejar)
+## Hi, how can we help you? 👋
+  * [All Categories](https://guides.5centscdn.net/)
+  * [5centsCDN Video Player 🎥](https://guides.5centscdn.net/categories/video-player)
+  * ANALYTICS
+
+
+## ANALYTICS
+### [Customized Analytics Filters – Report Period and Granularity](https://guides.5centscdn.net/articles/ox36Lsszi3GdB489fjHZ)### [How to access 5centsCDN player analytics? 6 steps](https://guides.5centscdn.net/guides/1a38b5b9-d59e-41ff-b006-a6797964da56)### [Review all the Player Key Metrics and Demographics](https://guides.5centscdn.net/articles/qjFzu5kn17SIQlYcpA8B)### [Breakdown of Video Player HITS](https://guides.5centscdn.net/articles/bHoCKirMcDrzO4jj01t5)
+
+---

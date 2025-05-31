@@ -1,0 +1,11 @@
+
+URL: https://guides.5centscdn.net/guides/a5385ced-952d-45b1-8a16-85b3a1050fbf
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How can I use Edge Rules to disable CDN caching for a specific path?
+Click on HTTP PULL to enter the HTTP pull zone area
+1/12
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

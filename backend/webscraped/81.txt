@@ -1,0 +1,270 @@
+
+URL: https://guides.5centscdn.net/articles/EJ0G7eHIXQuxEkIox2zn
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How to Setup DNS for Static Content Delivery Using a CNAME Record?
+Sep 02, 2024●12 min read 
+**Create a CNAME in cPanel**
+Log into your **domain’s cPanel** and in the search box type **DNS ZONE** 3)Select one of two options that will appear, Simple DNS Zone Editor and/or Advanced DNS Zone Editor.
+If you select **Simple DNS Zone Editor** , follow these steps
+  * Select your domain name (if applicable)
+  * Scroll down to the Add a CNAME Record box
+  * In the Name field, enter the prefix/first part of your custom domain (cdn, 5centscdn, or whatever you choose) do NOT enter 
+  * In the CNAME box, add your pull zone, do NOT suffix it with a period/dot.
+  * Click the Add CNAME Record button.
+  * If you select Advanced DNS Zone Editor, follow these steps:
+  * Select your domain name (if applicable)
+  * Scroll down to the Add a Record box
+  * In the Name field, enter the prefix/first part of your custom domain (cdn, 5centscdn, or whatever you choose) do NOT enter 
+  * In the TTL box, add 14400 (4 hours).
+  * In the Type drop-down menu, select CNAME
+  * Click the Add CNAME Record button.
+  * In the CNAME box, add your pull zone, do NOT suffix it with a period/dot.
+  * Click the Add Record Button.
+
+
+**Create a CNAME in WHM**
+  * Log into your WHM (WebHostManager)
+  * Go to DNS Functions and Edit DNS Zone or in the search box, type Edit DNS Zone and click to open the page
+  * Select the Domain you wish to edit and click on Edit
+  * Scroll down to Add New Entries Below This Line In the first field, enter the prefix/first part of your custom domain (cdn, 5centscdn, or whatever you choose… do NOT enter 
+  * In the second field, you enter the TTL, usually 14400 as a default.
+  * In the drop-down menu, select CNAME.
+  * In the last box, add your pullzone, you MUST suffix it with a period/dot.
+  * Scroll to the bottom and click Save.
+
+
+**Create a CNAME in DirectAdmin**
+  * Log into your domain’s DirectAdmin Panel, then under the Your Account section, click on DNS Management.
+  * Scroll down to the Add Domain Records button.
+  * Scroll to where you can see CNAME.
+  * In the empty box, put cdn for example or whatever you want your Custom CDN Domain to be, (do NOT enter 
+  * In the box saying 
+
+
+**Create CNAME with your Domain or DNS provider**
+  * Log into your account at 
+  * Under the Public Network menu, Click Domain Name System then click Manage DNS.
+  * Under the DNS Zone Records header, click Edit next to your domain.
+  * In the CNAME (Aliases) section, fill in the sections as follows:
+  * Host: Enter the part of the address that you picked for your service. For example, if you picked 
+  * Points to: Enter your Pull Zone URL suffixed by a dot/period.
+  * TTL: Leave the TTL value to the default selection.
+
+
+**Amazon Route 53**
+  * Log into your account at 
+  * Click on the Amazon Route53 tab.
+  * Tick the checkbox next to your domain and from the top menu, click on Go To Record Sets.
+  * From the top menu, click on Create Record Sets.
+  * In the Create Record Set section to the right, fill in the sections as follows
+  * Name: Enter the part of the address that you picked for your service. For example, if you picked 
+  * Type: CNAME – Canonical Name. TTL (seconds): Leave the TTL value to the default selection or change it if you wish to. Value: Enter your Pull Zone URL suffixed by a dot/period.
+  * At the bottom of the section, click the Create Record Set button.
+
+
+**Net Earth One**
+  * Log into your **NetEarthOne Account**. The login URL depends on how your account is setup. This also works for ResellerClub
+  * Hover over the Products tab then click on List All Orders.
+  * Click on your domain name from the list of domains.
+  * From the right menu, click on DNS Management, then click Manage DNS
+  * A POPUP page will open, click on CNAME Records, under the title List of CNAME Records, click Add CNAME Record fill in the sections as follows:
+  * Host Name: Enter the part of the address that you picked for your service. For example, if you picked 
+  * Value: Tick the second radio button, then enter your Pull Zone URL suffixed by a dot/period.
+  * TTL (seconds): Leave the TTL value to the default selection or change it if you wish to.
+  * At the bottom of the section, click the Add Record button.
+
+
+**Yahoo! Small Business**
+  * Log into your account at 
+  * Click Domain Control Panel below your domain.
+  * Click Manage Advanced DNS Settings.
+  * Click Add Record.
+  * In the Source field, enter the part of the address that you chose for your website using the CDN. For example, if you chose 
+  * Enter the Pull Zone URL in the Destination field.
+  * Click Submit.
+
+
+**eNom**
+  * Log into your account at 
+  * From the drop-down menu at the Domains tab, select My Domain. You’ll be directed to the Manage Domains page.
+  * Click on your domain name.
+  * Click Host Settings.
+  * To add a CNAME record, click NEW ROW. If you’ve already created a CNAME record for the address, simply edit the existing CNAME record.
+  * Enter the part of the address that you want to use with the CDN. For example, if you entered 
+  * Enter the Pull Zone URL. for the host name.
+  * Click Save.
+
+
+  * Log into your account at 
+  * Click Manage my DNS.
+  * Click on your domain name.
+  * In the CNAME (Aliases) section, fill in the sections as follows:
+  * Host: Enter the part of the address that you picked for your service. For example, if you picked 
+  * Points to: Enter your Pull Zone URL suffixed by a dot/period.
+  * TTL: Leave the TTL value to the default selection
+  * Click the Add button.
+
+
+**EveryDNS**
+  * Log into your account at 
+  * On the left side, click on your domain name from the list of domains.
+  * Since 
+  * Below Add a Record:, you can create your CNAME record.
+  * Next to Fully Qualified Domain Name, enter only the part of your website address that you designated for your CDN Zone. For example, if you picked 
+  * Select CNAME as the Record Type.
+  * Enter the Pull Zone URL as the Record Value.
+  * Click Add Record.
+
+
+**No-IP**
+  * Log into your account at **No-IP**.
+  * On the left side, click Host/Redirects.
+  * Click Manage underneath Host/Redirects.
+  * Click Add for a new entry, or click Modify and skip to step six for an existing entry.
+  * Enter the part of the address that you picked for the CDN as the host name, and select your domain name. For example, if you entered 
+  * Select DNS alias CNAME at the host type.
+  * Enter the Pull Zone URL as the Target Host and click Modify.
+
+
+**DNS Park**
+  * Log into your account at **DNS Park**.
+  * On the left side, click DNS Hosting.
+  * Click the domain you’d like to use with the CDN.
+  * Since DNS Park is your hosting service, and not your domain registrar, be sure that your domain points to DNS Park’s nameservers. This will allow your CNAME record configuration to take effect.
+  * Click Alias Records.
+  * Under Host Name, enter only the part of your website address that you designated for the CDN. If you picked 
+  * Enter the Pull Zone URL under Destination Name.
+  * Click Add Alias.
+
+
+  * Log into your 
+  * Click on the My Services tab.
+  * Under Manage My Services, click on Manage Services.
+  * Go to Domain Overview.
+  * Click on Domain Administration.
+  * Select the domain you’re using with the CDN.
+  * Click the DNS tab, and select DNS Records.
+  * Click Add New DNS record.
+  * From the drop-down menu, select CNAME, and click Next.
+  * Enter your custom URL prefix (such as www), and then enter Pull Zone URL.
+  * Click Finish.
+
+
+**IX Web Hosting**
+  * Log into your account at **IX Web Hosting**.
+  * Click Manage below the Hosting Account section.
+  * On the left side, click the domain you’d like to use with the CDN.
+  * Next to DNS Configuration, click EDIT.
+  * Click Add DNS CNAME Record.
+  * Under Name, enter only the part of your website address that you designated for your CDN Site. For example, if you picked 
+  * Enter the Pull Zone URL. under Data.
+  * Click Submit.
+
+
+**1and1**
+  * Log into your account at 
+  * If it’s not already selected, click the Administration tab.
+  * Click Domains. The Domain Overview page appears.
+  * From the New drop-down menu, select Create Subdomain. (If you’ve already created a subdomain for your website’s address, skip to step six.)
+  * Enter the prefix of the address for your CDN Site, and click OK. Example: if you chose 
+  * Check the box next to the subdomain.
+  * From the DNS menu, select Edit DNS Settings.
+  * Click the radio button next to CNAME.
+  * Next to Alias, enter the Pull Zone URL.
+  * Click OK.
+
+
+  * Log into your account at 
+  * Click the Administration tab, and then click the control panel link.
+  * Click the domain you want to manage, and go to Technical Settings.
+  * Click Manage DNS zone file.
+  * Click Add an entry, and for each field, do the following
+  * Name: Enter your custom URL prefix (such as www).
+  * Type: Select CNAME.
+  * Value: Enter the Pull Zone URL making sure to include a trailing dot (.) at the end of the value.
+  * Click Submit.
+  * You should be back to the list of entries. Click Submit Changes.
+
+
+  * Log into your account at 
+  * Click My Domains in the My Domains menu on the left side of the page. A table listing your domains should appear.
+  * Click the DNS column on the row of the domain you wish to change. The DNS records for your domain should now be displayed.
+  * From the Add… drop-down menu of the HOST NAME table, choose Host Alias, and click theAdd button next to it.
+  * In the Alias: field, add the name you chose for your service CDN. For example, if you chose 
+  * Enter the Pull Zone URL. in the Host Name: field.
+  * Click the Save Settings button.
+
+
+  * Log into your account at 
+  * Under the My Accounts tab, click your domain name.
+  * Scroll down to the Advanced Technical Settings heading, and click Edit Domain Aliases Records.
+  * In the box to the left of your domain name, enter your URL prefix (such as www).
+  * Enter the Pull Zone URL in the points to box.
+  * Click Continue.
+  * Review your changes, and click Continue to create the CNAME record.
+
+
+  * Go to 
+  * Click on the Account link at the top of the page.
+  * Login with your Domain Name and Password.
+  * Click on the Domain Name tab.
+  * Click DNS Management in the left-hand pane.
+  * Click the Manage DNS button.
+  * Add an ALIAS (CNAME) RECORD by doing the following in the ZONE SERVER area:
+  * Enter your URL prefix (such as www).
+  * Enter the Pull Zone URL.
+
+
+  * Log into your account at 
+  * Under the Domains header, find the domain you’re using for your service. Click (Advanced Details) to the right of this domain.
+  * Under the DNS Manager header, click Launch.
+  * In the CNAME (Alias) section, click Quick Add. If you’ve already created a CNAME record for the address, you can click anywhere in the existing CNAME record’s row to edit.
+  * In the new row that appears, enter the following information:
+  * Host: Enter the part of the address that you picked for your service. For example, if you picked 
+  * Points to: Enter your Pull Zone URL.
+  * TTL: Leave the TTL value to the default selection.
+  * At the top or the bottom of the page, click the Save Zone File button.
+  * Click OK in the pop-up
+
+
+**Network Solutions**
+  * Log into your account at 
+  * In the left navigation bar, open the nsWebAddress (Domains) menu by clicking the + icon.
+  * Click Manage Domain Names.
+  * On the Domain Details page for your domain, select the Designated DNS radio button to the right of Change domain to point to. (If you’ve already configured advanced DNS settings, clickEdit next to Advanced DNS Settings.)
+  * Click the Apply Changes button.
+  * Under the Advanced DNS Manager heading, click Manage Advanced DNS Records.
+  * Under the Host Aliases (CNAME Records) heading, click Add/Edit.
+  * In the Alias box, enter your custom URL prefix (such as cdn).
+  * Select the radio button to the left of the Other Host box.
+  * Enter the Pull Zone URL in the Other Host box.
+  * Click Continue.
+  * Review your changes and click Save Changes to create the CNAME record.
+
+
+**Media Temple**
+  * Log into your Media Temple account at 
+  * Enter your “Primary Domain”, “Primary Email” and “Password” then click the “Login” button.
+  * Click the domain name that needs a CNAME record added to it.
+  * Click the “Edit DNS Zone File” icon located under the “Domain Tools” section.
+  * Click the “Add a Record” button.
+  * Enter the host name or alias in the field under the “Name” column.
+  * Click the drop-down menu under the “Type” column and select “CNAME”.
+  * Enter the domain value or destination in the field under the “Data” column.
+  * Click the “Save” button.
+
+
+**CloudFlare**
+  * Log into your CloudFlare account at 
+  * Navigate to “My Websites”
+  * Click on settings icon and select “DNS settings”
+  * Hit on “Add new record”
+  * From drop down list on the left side (under “Type” column) within provided form select CNAME record
+  * Enter the host name (first section of what will be your custom domain) under “Name” column
+  * Enter the Pull Zone URL for field is an alias of under “Value” column
+  * Hit “Add” button and after that hit “I’m done editing my DNS records” button
+
+
+
+---

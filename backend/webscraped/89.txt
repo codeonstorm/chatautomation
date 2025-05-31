@@ -1,0 +1,10 @@
+
+URL: https://guides.5centscdn.net/guides/022ef0c5-52e3-4072-9af2-a59572e23410
+Depth: 2
+[](https://guides.5centscdn.net/)
+![](https://www.5centscdn.net/dashboard/favicon.png)
+# How to get per Stream Reports in Analytics
+Added the ability to view detailed analytics for each individual stream, allowing deeper insights into content performance 
+Aa
+
+---

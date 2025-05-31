@@ -1,0 +1,12 @@
+
+URL: https://guides.5centscdn.net/guides/c6296c57-eee1-4898-bb3d-1466956fd46c
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How to set up CNAME for Live stream or DVR
+If you want to setup Cname for your playback URL instead of xxxxx-live.5centscdn.com you can enable it directly from our console. To do this you should set a CNAME or ANAME for your custom domain to xxxxx-live.5centscdn.com.
+Click on "Live Streams"
+1/7
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

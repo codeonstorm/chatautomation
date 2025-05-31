@@ -67,7 +67,7 @@ async def run_advanced_crawler(
     # Set up the configuration
     config = CrawlerRunConfig(
         deep_crawl_strategy=BestFirstCrawlingStrategy(
-            max_depth=0,  # 2
+            max_depth=2,  # 0
             max_pages=300,
             include_external=False,
             filter_chain=filter_chain,

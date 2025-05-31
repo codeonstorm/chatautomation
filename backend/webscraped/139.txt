@@ -1,0 +1,12 @@
+
+URL: https://guides.5centscdn.net/guides/e2d91bbf-1580-45eb-9a17-6ea6e774ca9c
+Depth: 2
+[](https://guides.5centscdn.net/)
+# What is IP Filter and how to create rules?
+IP Filters are rules you can apply to your records that if a user meets the requirement(s) of the filter, they will be answered with that record. Otherwise, they will be answered with the World/Default. Filters can be created for: regions, countries, cities, ASN (Autonomous System Network) of the resolving name server, /24 IPv4 EDNS client subnet, and /120 IPv6 EDNS client subnet. The IP Filter is Available for A, AAAA, CNAME, and ANAME records.
+From the Dashboard > DNS > Click on "Traffic Director"
+1/15
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

@@ -1,0 +1,15 @@
+
+URL: https://guides.5centscdn.net/categories/edgerules
+Depth: 1
+[](https://guides.5centscdn.net/)
+[Go to 5centsCDN](https://www.5centscdn.net/?ref=guidejar)[5centsCDN](https://www.5centscdn.net/?ref=guidejar)
+## Hi, how can we help you? 👋
+  * [All Categories](https://guides.5centscdn.net/)
+  * Edge Rules 🛡️
+
+
+## Edge Rules 🛡️
+Set custom rules for content delivery from the edge, giving you control over cache settings, redirects, and other behaviors for optimal performance.
+### [How do I enable IP access and allow or block specific IPs? 12 steps](https://guides.5centscdn.net/guides/345b7941-a63d-4f03-a05e-399b3abab168)### [How to block requests from specific countries or IP using edge rules? 10 steps](https://guides.5centscdn.net/guides/dea1be8c-ec1b-4a7c-a57e-df8d70931b42)### [How to enable HTTP to HTTPS redirect using edge rules? 9 steps](https://guides.5centscdn.net/guides/dc5421a5-844a-476e-9501-4fd881cc8bca)### [ How to redirect a hostname using edge rules? 11 steps](https://guides.5centscdn.net/guides/effddac2-a190-4b56-addd-e8a56e7a7095)### [How can I use Edge Rules to disable CDN caching for a specific path? 13 steps](https://guides.5centscdn.net/guides/a5385ced-952d-45b1-8a16-85b3a1050fbf)### [How to enable domain lock feature using edge rules? 11 steps](https://guides.5centscdn.net/guides/d7b6a8d0-e32b-4131-a4c4-e1ef2ebdf305)### [How to enforce HTTPS using edge rules? Using edge rule we can enable HSTS (HTTP Strict Transport Security) security feature that helps protect websites against protocol downgrade attacks and cookie hijacking by ensuring that browsers only interact with the site using HTTPS. 11 steps](https://guides.5centscdn.net/guides/8e61ac7e-502d-49df-b1f2-cdb07c16fb09)### [How to add custom headers to requests using edge rules? 11 steps](https://guides.5centscdn.net/guides/c54c0a37-e390-4c2f-8f30-0f5405e8bb14)
+
+---

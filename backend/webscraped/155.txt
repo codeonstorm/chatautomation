@@ -1,0 +1,12 @@
+
+URL: https://guides.5centscdn.net/guides/f7baa01a-4f13-4f41-82a4-5193d16409a7
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How to add a Traffic Director domain in 5centsCDN?
+Our intelligent traffic management service makes it easy to implement a multi-CDN infrastructure that puts you in control of performance and cost. You can simply start with a strategy that directs traffic to the preferred CDN based on the country, state, or ASN (autonomous system number) of your users. Follow the steps to add a domain in the 5centsCDN control panel.
+Step 1 – Add the domain in the 5centsCDN control panel
+1/15
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

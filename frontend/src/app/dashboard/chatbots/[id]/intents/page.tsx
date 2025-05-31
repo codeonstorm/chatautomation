@@ -1,6 +1,18 @@
-'use client'
-import { MessageSquare, Plus } from "lucide-react";
+"use client";
+import { MessageSquare, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,54 +43,84 @@ import {
 } from "@/components/ui/breadcrumb";
 import { DarkModeToggle } from "@/components/darkmodetoogle";
 import { useParams } from "next/navigation";
-import { use, useEffect } from "react";
+import { use, useEffect, useState } from "react";
+import { useAuth } from "@/context/auth-context";
+import { deleteIntent, getIntents } from "@/services/intents_service";
+import { Intent } from "@/types/intent";
 
 // Sample data for intents
-const intents = [
-  {
-    id: "1",
-    name: "Greeting",
-    description: "Handles user greetings",
-    trainingPhrases: 15,
-    lastUpdated: "2 days ago",
-  },
-  {
-    id: "2",
-    name: "Order Status",
-    description: "Checks status of an order",
-    trainingPhrases: 24,
-    lastUpdated: "5 hours ago",
-  },
-  {
-    id: "3",
-    name: "Product Inquiry",
-    description: "Handles questions about products",
-    trainingPhrases: 32,
-    lastUpdated: "1 day ago",
-  },
-  {
-    id: "4",
-    name: "Support Request",
-    description: "Handles customer support requests",
-    trainingPhrases: 18,
-    lastUpdated: "3 days ago",
-  },
-  {
-    id: "5",
-    name: "Feedback",
-    description: "Collects user feedback",
-    trainingPhrases: 12,
-    lastUpdated: "1 week ago",
-  },
-];
+// const intents = [
+//   {
+//     id: "1",
+//     name: "Greeting",
+//     description: "Handles user greetings",
+//     trainingPhrases: 15,
+//     lastUpdated: "2 days ago",
+//   },
+//   {
+//     id: "2",
+//     name: "Order Status",
+//     description: "Checks status of an order",
+//     trainingPhrases: 24,
+//     lastUpdated: "5 hours ago",
+//   },
+//   {
+//     id: "3",
+//     name: "Product Inquiry",
+//     description: "Handles questions about products",
+//     trainingPhrases: 32,
+//     lastUpdated: "1 day ago",
+//   },
+//   {
+//     id: "4",
+//     name: "Support Request",
+//     description: "Handles customer support requests",
+//     trainingPhrases: 18,
+//     lastUpdated: "3 days ago",
+//   },
+//   {
+//     id: "5",
+//     name: "Feedback",
+//     description: "Collects user feedback",
+//     trainingPhrases: 12,
+//     lastUpdated: "1 week ago",
+//   },
+// ];
 
 export default function IntentsPage() {
- const params = useParams()
- const id = params.id as string; // Assuming id is a string, adjust if necessary
-  // useEffect(() => {
-  //   // const id = params.id;
-  // }, [params.id]);
+  const { user } = useAuth();
+  const params = useParams();
+  const [intents, setIntents] = useState<Intent[]>([]);
+  const id = params.id as string;
 
+  useEffect(() => {
+    const fetchIntent = async () => {
+      if (!user) {
+        // console.error("User or services not available");
+        return;
+      }
+      try {
+        const intents: Intent[] = await getIntents(user?.services[0].id, id);
+        setIntents(intents);
+      } catch (error) {
+        // console.error("Error fetching entities:", error);
+      }
+    };
+
+    fetchIntent();
+  }, [user, id]);
+
+  const handleDelete = async (intentid: string) => {
+    if (!user || !user.services || user.services.length === 0) return;
+    try {
+      await deleteIntent(user?.services[0].id, id, intentid)
+      setIntents((prev) => prev.filter((intent) => String(intent.id) != intentid));
+    } catch (error) {
+      console.log('itrnt not deleted')
+      // Optionally handle error
+    }
+  };
+  
 
   return (
     <SidebarInset>
@@ -151,15 +193,49 @@ export default function IntentsPage() {
                           </div>
                         </TableCell>
                         <TableCell>{intent.description}</TableCell>
-                        <TableCell>{intent.trainingPhrases}</TableCell>
-                        <TableCell>{intent.lastUpdated}</TableCell>
+                        <TableCell>{intent.phrases.length}</TableCell>
+                        <TableCell>{intent.updated_at}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button asChild variant="ghost" size="sm">
-                              <Link href={`/dashboard/chatbots/${id}/intents/${intent.id}/edit`}>
+                              <Link
+                                href={`/dashboard/chatbots/${id}/intents/edit/${intent.id}`}
+                              >
                                 Edit
                               </Link>
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Are you sure?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will
+                                    permanently delete the chatbot and all its
+                                    data.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(String(intent.id))}
+                                    className="bg-red-500 hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                             {/* <Button asChild variant="ghost" size="sm">
                               <Link
                                 href={`/dashboard/intents/${intent.id}/train`}

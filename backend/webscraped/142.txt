@@ -1,0 +1,12 @@
+
+URL: https://guides.5centscdn.net/guides/e575bfee-ddd8-42c5-bbb5-96dd8fe761a6
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How to enable a CDN proxy for A, AAAA or CNAME records?
+In simple DNS, we can enable CDN proxy for A, AAAA, or CNAME records. Please follow the steps
+Click on DNS
+1/15
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

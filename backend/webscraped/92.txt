@@ -1,0 +1,11 @@
+
+URL: https://guides.5centscdn.net/guides/1a38b5b9-d59e-41ff-b006-a6797964da56
+Depth: 2
+[](https://guides.5centscdn.net/)
+# How to access 5centsCDN player analytics?
+Go to your Dashboard & Click on "Players"
+1/5
+Aa
+![Applause](https://guides.5centscdn.net/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fapplause.747b9026.png&w=640&q=75)
+
+---

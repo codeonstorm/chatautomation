@@ -59,6 +59,7 @@ from app.classes.chat_flow import ChatFlow
 from app.services.intent_service import (
     get_all_intents
 )
+from app.services.webhook_service import get_webhook_service
 
 MODEL_DIR = Path("models")
 model = SetFitModel.from_pretrained(
@@ -184,7 +185,13 @@ async def websocket_endpoint(
 
     # intent
     intentsList = get_all_intents(UUID(chatbot_uuid), session)
-    print("\n\nintentsList: ", intentsList, end="\n\n")
+    intents = {}
+
+    for intent in intentsList:      
+        intents[intent.name] = intent
+    del intentsList
+
+    # print("\n\n\n\nintents: ", intents, end="\n\n")
 
     # entities
     entities = session.exec(
@@ -193,15 +200,15 @@ async def websocket_endpoint(
     
     entitiesSynonymList = {}
     entitiesPatternList = {}
-    for entity in entities:
-        if entity.entity_type == "list":
-            entity.value = json.loads(entity.value) if entity.value else None
-            entitiesSynonymList[entity.name] = entity.value
-        elif entity.entity_type == "pattern":
-            entity.value = json.loads(entity.value) if entity.value else None
-            entitiesPatternList[entity.name] = (
-                entity.value[entity.name][0] if entity.value else None
-            )
+    # for entity in entities:
+    #     if entity.entity_type == "list":
+    #         entity.value = json.loads(entity.value) if entity.value else None
+    #         entitiesSynonymList[entity.name] = entity.value
+    #     elif entity.entity_type == "pattern":
+    #         entity.value = json.loads(entity.value) if entity.value else None
+    #         entitiesPatternList[entity.name] = (
+    #             entity.value[entity.name][0] if entity.value else None
+    #         )
 
     entitiesList = {
         "synonym": entitiesSynonymList,
@@ -212,7 +219,9 @@ async def websocket_endpoint(
 
     # print("\n\n\n\nentitiesList: ", entitiesList, end="\n\n")
 
-    chatFlow: ChatFlow = ChatFlow(model, intentsList, entitiesList)
+    webhook_config = get_webhook_service(UUID(chatbot_uuid), session)
+
+    chatFlow: ChatFlow = ChatFlow(model, intents, entitiesList, webhook_config)
     try:
         while True:
             data = await websocket.receive_json()
