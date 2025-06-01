@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import Any, List
 from typing import Dict, List
 import json
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from pydantic import BaseModel
@@ -14,7 +15,7 @@ from app.models.scrapedurls import ScrapedUrls
 from tasks.tasks import start_crawl_task
 
 
-router = APIRouter(prefix="/{service_id}/webscraper", tags=["webscraper"])
+router = APIRouter(prefix="/{service_id}/{chatbot_uuid}/webscraper", tags=["webscraper"])
 
 crawl_jobs: Dict[str, Dict] = {}
 
@@ -76,6 +77,7 @@ class CrawlRequest(BaseModel):
 @router.post("")
 async def start_crawl(
     service_id: int,
+    chatbot_uuid: UUID,
     url: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_session),
@@ -95,7 +97,7 @@ async def start_crawl(
     # Step 2: Start the crawl task
     try:
         job_id = start_crawl_task.send(
-            service_id=service_id, taskid=tasktracker.id, url=url
+            service_id=service_id, chatbot_uuid=str(chatbot_uuid), taskid=tasktracker.id, url=url
         )
     except Exception as e:
         raise HTTPException(
@@ -169,7 +171,7 @@ async def delete_url(
     db.delete(results)
     db.commit()
 
-    return {"url": urlid, "detail": "URL deleted successfully"}
+    return {"url": id, "detail": "URL deleted successfully"}
 
 
 # @router.get("/stop/{job_id}")

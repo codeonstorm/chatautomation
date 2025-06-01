@@ -49,7 +49,7 @@ class BaseTool:
         return query
 
     @staticmethod
-    def retriever(user_query: str) -> str:
+    def retriever(dbname: str, user_query: str) -> str:
         """
         tool to get updated information for the user query.
         Args:
@@ -65,8 +65,8 @@ class BaseTool:
             print("user_query", user_query)
             embedder = DocumentEmbedder()
             query_embedding = embedder.embedding_model.encode([user_query])[0]
-            vectorDB = VectorDB("2b38345c-dda4-476a-bbd9-8724ea4f2851")
-            results = vectorDB.search(query_embedding, top_k=5)
+            vectorDB = VectorDB(dbname)
+            results = vectorDB.search(query_embedding, top_k=10)
 
             # Extract matched texts and optional scores
             hits = [

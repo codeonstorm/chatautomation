@@ -2,4 +2,5 @@
 logs/
 **backup
 *uploads
+*webscraped
 **backend/app/migrations/versions/

@@ -1,3 +1,4 @@
+from uuid import UUID
 import subprocess
 import dramatiq
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
@@ -15,6 +16,7 @@ dramatiq.set_broker(rabbitmq_broker)
 @dramatiq.actor
 def start_crawl_task(
     service_id: int,
+    chatbot_uuid: UUID,
     taskid: int,
     url: str,
     # max_depth: int = 2,
@@ -39,6 +41,7 @@ def start_crawl_task(
             "-m",
             "app.classes.webscraper.crawler",
             str(service_id),
+            str(chatbot_uuid),
             str(taskid),
             url,
         ]

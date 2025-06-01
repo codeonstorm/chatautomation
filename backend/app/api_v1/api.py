@@ -16,6 +16,7 @@ from app.api_v1.routes import (
     webhooks,
     intents,
     entities,
+    test
 )
 
 api_router = APIRouter()
@@ -34,3 +35,4 @@ api_router.include_router(analytics.router)
 api_router.include_router(webhooks.router)
 api_router.include_router(intents.router)
 api_router.include_router(entities.router)
+api_router.include_router(test.router)

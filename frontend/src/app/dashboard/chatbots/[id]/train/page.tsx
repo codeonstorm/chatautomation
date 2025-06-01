@@ -74,7 +74,7 @@ import {
 
 import { getFileList } from "@/services/filemanager";
 import { convertSize } from "@/lib/utils";
-import { getScrapedUrls, getWebCrawProgress, startWebCrawler } from "@/services/scrapedurls";
+import { deleteUrl, getScrapedUrls, getWebCrawProgress, startWebCrawler } from "@/services/scrapedurls";
 import { ScrapedUrls, WebCrawProgress } from "@/types/scrapedurls";
 import { useAppDispatch, useAppSelector } from "@/redux/store/hooks";
 import { addUrl } from "@/redux/store/features/scrapedurl/scrapedurl";
@@ -104,12 +104,13 @@ export default function ChatbotTrainingPage() {
   const [trainingData, setTrainingData] = useState<fileMetaType[]>([]);
   const { user } = useAuth();
   const [crawlProgress, setcrawlProgress] = useState<WebCrawProgress[]>([]);
+  const chatbot_uuid = params.id as string;
+  const service_id = user?.services[0].id
 
   useEffect(() => {
     if (!user) {
       return;
     }
-    const chatbot_uuid = params.id as string;
     const fetchchatbot = async (serviceid: number, chatbot_uuid: string) => {
       const bot: Chatbot = await getChatbot(serviceid, chatbot_uuid);
       return bot;
@@ -133,8 +134,10 @@ export default function ChatbotTrainingPage() {
     script.async = true;
     document.body.appendChild(script);
     script.onload = () => {
+      
+      // @ts-ignore
       const r: any = new Resumable({
-        target: "http://127.0.0.1:8000/api/v1/1/filemanager/uploads",
+        target: `http://127.0.0.1:8000/api/v1/${service_id}/${chatbot_uuid}/filemanager/uploads`,
         chunkSize: 1 * 1024 * 1024,
         simultaneousUploads: 3,
         testChunks: true,
@@ -169,15 +172,13 @@ export default function ChatbotTrainingPage() {
   }, [chatbot]);
 
   useEffect(() => {
-    console.log(user);
     if (!user) {
       return;
     }
-
     const fetchFileList = async (serviceid: number) => {
       try {
-        const fileList = await getFileList(serviceid);
-        console.log(fileList); // Log the file list if you want to check its value
+        const fileList = await getFileList(serviceid, params.id as string);
+        // console.log(fileList); // Log the file list if you want to check its value
         setTrainingData(fileList);
       } catch (err) {
         console.error("Error fetching file list:", err);
@@ -185,17 +186,17 @@ export default function ChatbotTrainingPage() {
     };
 
     fetchFileList(user?.services[0].id); // Call the async function
-  }, [user, params.id, uploading]);
+  }, [user, params, uploading]);
 
   // urls
   useEffect(() => {
     const scrapedUrls = async (serviceid: number) => {
-      const urls: ScrapedUrls[] = await getScrapedUrls(serviceid);
+      const urls: ScrapedUrls[] = await getScrapedUrls(serviceid, chatbot_uuid);
       dispatch(addUrl(urls));
     };
 
     const fetchWebCrawProgress = async (serviceid: number) => {
-      const progessList: WebCrawProgress[] = await getWebCrawProgress(serviceid);
+      const progessList: WebCrawProgress[] = await getWebCrawProgress(serviceid, chatbot_uuid);
       setcrawlProgress(progessList)
     };
 
@@ -211,14 +212,14 @@ export default function ChatbotTrainingPage() {
   const handleUrlAdd = async (serviceid: number, url: string) => {
     if (!url) return;
 
-    const startCrawl = async (serviceid: number, url: string) => {
-      await startWebCrawler(serviceid, url);
+    const startCrawl = async (serviceid: number, chatbot_uuid: string, url: string) => {
+      await startWebCrawler(serviceid, chatbot_uuid, url);
     };
     const fetchWebCrawProgress = async (serviceid: number) => {
-      const progessList: WebCrawProgress[] = await getWebCrawProgress(serviceid);
+      const progessList: WebCrawProgress[] = await getWebCrawProgress(serviceid, chatbot_uuid);
       setcrawlProgress(progessList)
     };
-    startCrawl(serviceid, url);
+    startCrawl(serviceid, chatbot_uuid, url);
     fetchWebCrawProgress(serviceid);
     try {
       new URL(url);
@@ -230,13 +231,6 @@ export default function ChatbotTrainingPage() {
       // })
       return;
     }
-
-    const handleUrlDelete = async (serviceid: number, urlid: number) => {
-      const deleteUrl = async () => {
-        // await
-      };
-      // deleteUrl();
-    };
 
 
     // Add URL to training data
@@ -258,6 +252,17 @@ export default function ChatbotTrainingPage() {
     // setUrl("");
   };
 
+  
+  const handleUrlDelete = async (urlid: number) => {
+    if (!service_id) return;
+    try {
+      await deleteUrl(service_id, chatbot_uuid, urlid);
+    } catch (error) {
+      console.error(error)
+    }
+  };
+
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -276,14 +281,14 @@ export default function ChatbotTrainingPage() {
       };
     });
 
-    setTrainingData([...trainingData, ...newTrainingData]);
+    // setTrainingData([...trainingData, ...newTrainingData]);
     // toast({
     //   title: "Files uploaded",
     //   description: `${files.length} file(s) have been added for training.`,
     // })
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     console.log(id);
     // setTrainingData(trainingData.filter((item) => item.name !== name));
     // toast({
@@ -542,6 +547,7 @@ export default function ChatbotTrainingPage() {
                                   {progress.meta_data && (() => {
                                     var meta = progress.meta_data.replace(/'/g, '"').replace(/\(\)/g, '[]'); 
                                     meta = JSON.parse(meta)
+                                    // @ts-ignore
                                     const url = meta.url;
                                     const urlObj = new URL(url)
                                     return urlObj.hostname;
@@ -619,7 +625,6 @@ export default function ChatbotTrainingPage() {
                                               onClick={() =>
                                                 user &&
                                                 handleUrlDelete(
-                                                  user.services[0].id,
                                                   item.id
                                                 )
                                               }
@@ -717,7 +722,7 @@ export default function ChatbotTrainingPage() {
                                             Cancel
                                           </AlertDialogCancel>
                                           <AlertDialogAction
-                                            onClick={() =>
+                                            onClick={(e) =>
                                               handleDelete(item.name)
                                             }
                                             className="bg-red-500 hover:bg-red-700"

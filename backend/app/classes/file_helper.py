@@ -23,11 +23,10 @@ class FileHelper:
         self,
     ) -> Union[List[Dict[str, Union[str, float]]], Dict[str, str]]:
         """Returns details of all files in the specified folder."""
-
-        if not self.validate_folder():
-            return {"error": "Data Not Found!"}
-
         files_info = []
+        if not self.validate_folder():
+            return files_info
+
 
         for file in self.folder.iterdir():
             if file.is_file():

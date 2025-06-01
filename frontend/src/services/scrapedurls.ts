@@ -12,9 +12,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
  
-export async function getScrapedUrls(serviceid: number): Promise<ScrapedUrls[]> {
+export async function getScrapedUrls(serviceid: number, chatbot_uuid: string): Promise<ScrapedUrls[]> {
   const accessToken = localStorage.getItem("accessToken")
-  const response = await fetch(`${API_URL}/${serviceid}/webscraper`, {
+  const response = await fetch(`${API_URL}/${serviceid}/${chatbot_uuid}/webscraper`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -23,9 +23,9 @@ export async function getScrapedUrls(serviceid: number): Promise<ScrapedUrls[]> 
 }
 
 
-export async function startWebCrawler(serviceid: number, url: string): Promise<undefined> {
+export async function startWebCrawler(serviceid: number, chatbot_uuid: string, url: string): Promise<undefined> {
   const accessToken = localStorage.getItem("accessToken")
-  const response = await fetch(`${API_URL}/${serviceid}/webscraper?url=${url}`, {
+  const response = await fetch(`${API_URL}/${serviceid}/${chatbot_uuid}/webscraper?url=${url}`, {
     method: 'POST',
     body: JSON.stringify({
       url: url
@@ -37,9 +37,9 @@ export async function startWebCrawler(serviceid: number, url: string): Promise<u
   return handleResponse<undefined>(response)
 }
 
-export async function deleteUrl(serviceid: number, urlid: number): Promise<undefined> {
+export async function deleteUrl(serviceid: number, chatbot_uuid:string, urlid: number): Promise<undefined> {
   const accessToken = localStorage.getItem("accessToken")
-  const response = await fetch(`${API_URL}/${serviceid}/webscraper?url=${url}`, {
+  const response = await fetch(`${API_URL}/${serviceid}/${chatbot_uuid}/webscraper/url/${urlid}`, {
     method: 'DELETE',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -48,9 +48,9 @@ export async function deleteUrl(serviceid: number, urlid: number): Promise<undef
   return handleResponse<undefined>(response)
 }
 
-export async function getWebCrawProgress(serviceid: number): Promise<WebCrawProgress[]> {
+export async function getWebCrawProgress(serviceid: number, chatbot_uuid: string): Promise<WebCrawProgress[]> {
   const accessToken = localStorage.getItem("accessToken")
-  const response = await fetch(`${API_URL}/${serviceid}/webscraper/progress`, {
+  const response = await fetch(`${API_URL}/${serviceid}/${chatbot_uuid}/webscraper/progress`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

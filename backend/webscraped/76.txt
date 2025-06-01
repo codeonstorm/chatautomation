@@ -1,8 +1,0 @@
-
-URL: https://guides.5centscdn.net/articles/HT1S2to6by4MB1RhrrWO
-Depth: 2
-[](https://guides.5centscdn.net/)
-# How to Setup DNS for Full-Site Content Delivery Using an ANAME Record
-Aug 06, 2024●0s read 
-
----

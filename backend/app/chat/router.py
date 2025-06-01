@@ -221,7 +221,7 @@ async def websocket_endpoint(
 
     webhook_config = get_webhook_service(UUID(chatbot_uuid), session)
 
-    chatFlow: ChatFlow = ChatFlow(model, intents, entitiesList, webhook_config)
+    chatFlow: ChatFlow = ChatFlow(chatbot_uuid, model, intents, entitiesList, webhook_config)
     try:
         while True:
             data = await websocket.receive_json()

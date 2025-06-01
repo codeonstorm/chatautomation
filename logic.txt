@@ -133,3 +133,7 @@ response
    |
 end
 
+
+
+#### researches 
+Build a RAG Chatbot With NVIDIA NIM Microservices

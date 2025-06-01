@@ -1,8 +1,0 @@
-
-URL: https://guides.5centscdn.net/guides/7f4021fc-db7d-4a94-b6fb-bef902486e66
-Depth: 2
-[](https://guides.5centscdn.net/)
-# How to create a Video Player?
-Aa
-
----

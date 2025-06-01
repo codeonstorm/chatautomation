@@ -21,8 +21,6 @@ def ingest_files_embedding(taskid, service_id, chatbot_uuid):
 
 
 # chatbot uuid,
-
-
 @router.post("/{chatbot_uuid}")
 async def data_ingestion(
     service_id: int,

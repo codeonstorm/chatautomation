@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from pathlib import Path
 import os
 import mimetypes
+from uuid import UUID
 
 from sqlmodel import Session
 from app.models.dataset import Dataset
@@ -20,7 +21,7 @@ from app.classes.file_helper import FileHelper
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-router = APIRouter(prefix="/{service_id}/filemanager", tags=["filemanager"])
+router = APIRouter(prefix="/{service_id}/{chatbot_uuid}/filemanager", tags=["filemanager"])
 
 
 html = """
@@ -77,15 +78,16 @@ html = """
 @router.get("/uploads")
 async def check_chunk(
     service_id: int,
+    chatbot_uuid: UUID,
     resumableIdentifier: str,
     resumableFilename: str,
     resumableChunkNumber: int,
 ):
-    if not (UPLOAD_DIR / str(service_id)).exists():
-        os.mkdir(UPLOAD_DIR / str(service_id))
+    if not (UPLOAD_DIR / str(service_id) / str(chatbot_uuid)).exists():
+        os.mkdir(UPLOAD_DIR / str(service_id) / str(chatbot_uuid))
 
     chunk_file = (
-        UPLOAD_DIR / str(service_id) / f"{resumableIdentifier}_{resumableChunkNumber}"
+        UPLOAD_DIR / str(service_id) / str(chatbot_uuid) / f"{resumableIdentifier}_{resumableChunkNumber}"
     )
     if chunk_file.exists():
         return JSONResponse(status_code=200, content={"status": "found"})
@@ -94,7 +96,10 @@ async def check_chunk(
 
 @router.post("/uploads")
 async def upload_chunk(
-    request: Request, service_id: int, session: Session = Depends(get_session)
+    request: Request, 
+    service_id: int, 
+    chatbot_uuid: UUID,
+    session: Session = Depends(get_session)
 ):
     form = await request.form()
     chunk_number = int(form.get("resumableChunkNumber"))
@@ -103,13 +108,13 @@ async def upload_chunk(
     chunk = form.get("file")
     filesize = form.get("resumableTotalSize")
 
-    if not (UPLOAD_DIR / str(service_id)).exists():
-        os.mkdir(UPLOAD_DIR / str(service_id))
+    if not (UPLOAD_DIR / str(service_id) / str(chatbot_uuid)).exists():
+        os.mkdir(UPLOAD_DIR / str(service_id) / str(chatbot_uuid))
 
     if not all([chunk_number, identifier, filename, chunk]):
         raise HTTPException(status_code=400, detail="Missing upload parameters")
 
-    chunk_file = UPLOAD_DIR / str(service_id) / f"{identifier}_{chunk_number}"
+    chunk_file = UPLOAD_DIR / str(service_id) / str(chatbot_uuid) / f"{identifier}_{chunk_number}"
 
     with chunk_file.open("wb") as f:
         f.write(await chunk.read())
@@ -117,29 +122,29 @@ async def upload_chunk(
     # Check if all chunks are uploaded
     total_chunks = int(form.get("resumableTotalChunks"))
     if all(
-        (UPLOAD_DIR / str(service_id) / f"{identifier}_{i}").exists()
+        (UPLOAD_DIR / str(service_id) / str(chatbot_uuid) / f"{identifier}_{i}").exists()
         for i in range(1, total_chunks + 1)
     ):
 
-        with open(UPLOAD_DIR / str(service_id) / filename, "wb") as final_file:
+        with open(UPLOAD_DIR / str(service_id) / str(chatbot_uuid) / filename, "wb") as final_file:
             for i in range(1, total_chunks + 1):
-                chunk_file = UPLOAD_DIR / str(service_id) / f"{identifier}_{i}"
+                chunk_file = UPLOAD_DIR / str(service_id) / str(chatbot_uuid) / f"{identifier}_{i}"
                 with chunk_file.open("rb") as cf:
                     final_file.write(cf.read())
                 os.remove(chunk_file)
 
         # Detect file type using mimetypes
-        file_type, _ = mimetypes.guess_type(UPLOAD_DIR / str(service_id) / filename)
+        file_type, _ = mimetypes.guess_type(UPLOAD_DIR / str(service_id) / str(chatbot_uuid) / filename)
 
-        dataset = Dataset(
-            service_id=service_id,
-            name=filename,
-            file_format=file_type,
-            filesize=filesize,
-            allowed_training=False,
-        )
-        session.add(dataset)
-        session.commit()
+        # dataset = Dataset(
+        #     service_id=service_id,
+        #     name=filename,
+        #     file_format=file_type,
+        #     filesize=filesize,
+        #     allowed_training=False,
+        # )
+        # session.add(dataset)
+        # session.commit()
 
     return JSONResponse(status_code=200, content={"status": "chunk uploaded"})
 
@@ -150,12 +155,23 @@ async def upload_file():
 
 
 @router.get("/files")
-def list_files(service_id: int):
-    file_helper = FileHelper(UPLOAD_DIR / str(service_id))
-    return file_helper.get_file_details()
+def list_files(
+    service_id: int,
+    chatbot_uuid: UUID,
+):
+    file_helper = FileHelper(UPLOAD_DIR / str(service_id) / str(chatbot_uuid))
+    files = file_helper.get_file_details()
+    if files:
+        return files
+    raise HTTPException(status_code=404, detail="files not found")
+    
 
 
 @router.delete("/file/{file_name}")
-def delete_file(service_id: int, file_name: str):
-    file_helper = FileHelper(UPLOAD_DIR / str(service_id))
+def delete_file(
+    service_id: int,
+    chatbot_uuid: UUID, 
+    file_name: str
+):
+    file_helper = FileHelper(UPLOAD_DIR / str(service_id) / str(chatbot_uuid))
     return file_helper.delete_file(file_name)

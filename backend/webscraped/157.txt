@@ -1,9 +1,0 @@
-
-URL: https://guides.5centscdn.net/guides/fdbcb2d5-3093-48d4-bf09-7add590a0c04
-Depth: 2
-[](https://guides.5centscdn.net/)
-# How to create DNS A record in Traffic Director domain?
-The A Record points your hostname to an IP address. This is one of the most frequently used records in the DNS Zones and it is an essential part of your DNS configuration. Record A specifies the IP address (IPv4) for a given host. In other words, it resolves a domain name (or points the domain name) to the correct location by means of the IP address.The A record usually points to IPV4 addresses. We can add multiple IP addresses to the A record using traffic director.
-Aa
-
----

@@ -1,9 +1,0 @@
-
-URL: https://guides.5centscdn.net/guides/0221dcfc-db8f-4315-8a3c-d8be217fecff
-Depth: 2
-[](https://guides.5centscdn.net/)
-# What should I do if my preview isn't working while my stream is live, or How can I restart my stream?
-Go to the Stream you are facing preview issue with
-Aa
-
----

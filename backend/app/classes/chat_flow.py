@@ -13,7 +13,8 @@ import requests
 
 class ChatFlow:
 
-    def __init__(self, setfit_model, intentsList, entitiesList, webhook_config):
+    def __init__(self, chatbot_uuid, setfit_model, intentsList, entitiesList, webhook_config):
+        self.chatbot_uuid = str(chatbot_uuid)
         self.chat_history_store = []
         self.context_store = ContextStore(intent='', context='', slots={})
         self.entitiesList = entitiesList
@@ -38,6 +39,7 @@ class ChatFlow:
             triggered_intent = self.get_intent_detail(query)
             reply = self.perform_action_for_intent(triggered_intent, query)
             if reply: return reply
+            print("== llm call ==")
             return self.llm_response(query)
         except ResponseError as e:
             return f"Error in chat processing: {e}"
@@ -94,40 +96,44 @@ class ChatFlow:
             slots={}
         )
 
-        if triggered_intent.action.webhook == True:
-            # call_webhook = self.call_webhook(
-            #     self.webhook_config,
-            #     data={
-            #         "query": "https://example.com/api",
-            #         "entities": [],
-            #         "context_store": self.context_store.dict() if self.context_store else {},
-            #     },
-            # )
-            return "webhook called"
-        
-        if action_arguments.default_intent_responses:
+        if triggered_intent.action.webhook == True and self.webhook_config.status == 'enabled':
+            print("Webhook calling....")
+            webhook_response = self.call_webhook(
+                self.webhook_config,
+                data={
+                    "query": "https://example.com/api",
+                    "entities": [],
+                    "context_store": self.context_store.model_dump() if self.context_store else {},
+                },
+            )
+            if webhook_response:
+                return webhook_response
+        elif action_arguments.default_intent_responses:
             return action_arguments.default_intent_responses[0]
         return None
 
 
 
     def call_webhook(self, webhook_config: dict, data: dict):
-        url = webhook_config.get("endpoint")
+        url = webhook_config.endpoint
+        print("url: ", url)
         if not url:
             print("Webhook endpoint URL is missing.")
             return None
 
         # Start with any headers provided in 'header' field
-        headers = webhook_config.get("header", {}).copy()
+        headers = webhook_config.header.copy()
+        print("header: ", headers)
 
         # Dynamically add x-api-key or any keys from 'basic_auth'
-        basic_auth = webhook_config.get("basic_auth", {})
+        basic_auth = webhook_config.basic_auth
         for key, value in basic_auth.items():
             headers[key] = value
 
         try:
             response = requests.post(url, json=data, headers=headers)
             response.raise_for_status()
+            print("===", response.text, "===")
             return response.text  # or response.text
         except requests.exceptions.RequestException as e:
             print(f"Error calling webhook: {e}")
@@ -171,7 +177,7 @@ class ChatFlow:
 
         # Get final response
         t3 = time.time()
-        tool_response = BaseTool.retriever(standalone_question)
+        tool_response = BaseTool.retriever(self.chatbot_uuid, standalone_question)
         print("\n===Tool response time:", time.time() - t3, "seconds\n")
         print("Tool response:\n", tool_response, end="\n\n")
         tool_message = {

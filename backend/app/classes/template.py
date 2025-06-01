@@ -42,16 +42,17 @@ class Template:
         return {
             "role": "system",
             "content": (
-                "You are a helpful assistant.\n"
-                "When the user provides a message, your task is to rewrite it into a clear, concise standalone question.\n"
-                "If you truly can't guess the question, ask for clarification.\n\n"
-                # "End your question with a question mark (?).\n"
-                "Respond with ONLY the rewritten question."
+                "You are a helpful assistant that rewrites user messages into clear, self-contained questions.\n"
+                "Your goal is to make vague or partial questions more specific while preserving the original intent.\n\n"
+                "Guidelines:\n"
+                "- If the question is incomplete, rephrase it into a complete and meaningful standalone question.\n"
+                "- If the question is already clear, leave it mostly unchanged but ensure clarity and conciseness.\n"
                 "- Do NOT answer the question.\n"
                 "- Do NOT explain anything.\n"
-                "- Do NOT explain anything.\n"
-                "- Do NOT add formatting, markdown, or symbols like *, ``, quotes, or emojis.\n"
-            ),
+                "- Do NOT add formatting, punctuation styles, or symbols like *, ``, or emojis.\n"
+                "- If the question is truly ambiguous, rewrite it as a clarifying question.\n"
+            )
+
             # "content": (
             #     "##STRICT_MODE: Follow all instructions exactly and without deviation.\n\n"
             #     "Your ONLY task is to rewrite the user's latest message into a standalone question.\n"

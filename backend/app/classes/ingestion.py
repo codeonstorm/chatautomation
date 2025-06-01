@@ -79,7 +79,7 @@ class Ingestion:
 
     def ingest(self):
         db: Session = next(get_session())
-        upload_path = Path("uploads") / str(self.service_id)
+        upload_path = Path("uploads") / str(self.service_id) / str(self.chatbot_uuid)
         file_helper = FileHelper(upload_path)
         files = file_helper.get_file_details()
 
@@ -119,6 +119,7 @@ class Ingestion:
             embeddings = self.embedder.embedding_model.encode(chunks)
 
             for chunk, embedding in zip(chunks, embeddings):
+                print("\n\n", chunk, "\n\n")
                 self.vector_db.insert_vector(embedding.tolist(), chunk)
 
         self.vector_db.close()
